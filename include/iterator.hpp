@@ -1,3 +1,16 @@
+/*
+ * Copyright(C):    WhiZTiM, 2015
+ *
+ * This file is part of the TIML::UBEX C++14 library
+ *
+ * Distributed under the Boost Software License, Version 1.0.
+ *      (See accompanying file LICENSE_1_0.txt or copy at
+ *          http://www.boost.org/LICENSE_1_0.txt)
+ *
+ * Author: Ibrahim Timothy Onogu
+ * Email:  ionogu@acm.org
+ */
+
 #ifndef ITERATOR_HPP
 #define ITERATOR_HPP
 
@@ -24,7 +37,7 @@ namespace timl
                 arr_iter = (p == pos::begin) ? parent->value.Array.begin() : parent->value.Array.end();
                 break;
             case Type::Map:
-                map_iter = (p == pos::begin) ? parent->value.Map.begin() : parent->value.Map.begin();
+                map_iter = (p == pos::begin) ? parent->value.Map.begin() : parent->value.Map.end();
                 break;
             default:
                 break;
@@ -37,12 +50,12 @@ namespace timl
 
         Value_Type* operator -> ()
         {
-            switch (parent->vtype) {
+            switch (parent->type()) {
             case Type::Array:
-                current = *arr_iter;
+                current = arr_iter->get();
                 return current;
             case Type::Map:
-                current = *map_iter;
+                current = map_iter->second.get();
                 return current;
             default:
                 break;
@@ -52,7 +65,7 @@ namespace timl
 
         value_iterator& operator ++ () //prefix
         {
-            switch (current->vtype) {
+            switch (parent->type()) {
             case Type::Array:
                 ++arr_iter;
                 break;
@@ -62,11 +75,15 @@ namespace timl
             default:
                 break;
             }
-
+            return *this;
         }
 
-        value_iterator& operator ++ (int)
-        {   return ++value_iterator(*this);   }
+        value_iterator operator ++ (int)
+        {
+            auto rtn = value_iterator(*this);
+            operator ++();
+            return rtn;
+        }
 
         friend bool operator == (const value_iterator& lhs, const value_iterator& rhs)
         {
@@ -74,11 +91,14 @@ namespace timl
             if( lhs.parent != rhs.parent)
                 return false;
 
-            switch (lhs.parent.vtype) {
+            switch (lhs.parent->type()) {
             case Type::Array:
                 return lhs.arr_iter == rhs.arr_iter;
             case Type::Map:
+            {
+                bool mm = lhs.map_iter == rhs.map_iter;
                 return lhs.map_iter == rhs.map_iter;
+            }
             default:
                 break;
             }
@@ -87,7 +107,7 @@ namespace timl
         }
 
         friend bool operator != (const value_iterator& lhs, const value_iterator& rhs)
-        {   return not lhs == rhs; }
+        {   return  !(lhs == rhs); }
 
     private:
         Value_Type* parent;

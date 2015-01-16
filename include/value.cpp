@@ -1,5 +1,23 @@
+/*
+ * Copyright(C):    WhiZTiM, 2015
+ *
+ * This file is part of the TIML::UBEX C++14 library
+ *
+ * Distributed under the Boost Software License, Version 1.0.
+ *      (See accompanying file LICENSE_1_0.txt or copy at
+ *          http://www.boost.org/LICENSE_1_0.txt)
+ *
+ * Author: Ibrahim Timothy Onogu
+ * Email:  ionogu@acm.org
+ */
+
+
 #include "value.hpp"
+#include <cmath>
+#include <limits>
 #include <cstring>
+#include <algorithm>
+#include <iostream>
 
 using namespace timl;
 
@@ -8,24 +26,50 @@ template<typename T>
 T unique_ptr_copy(const T& src);
 
 template<>
-Value::ArrayType unique_ptr_copy(const Value::ArrayType& src)
+inline Value::ArrayType unique_ptr_copy(const Value::ArrayType& src)
 {
     Value::ArrayType rtn;
     for(auto& v : src)
-        rtn.push_back( std::make_unique<Value>(*v) );
+        rtn.emplace_back( std::make_unique<Value>(*v) );
     rtn.shrink_to_fit();
     return rtn;
 }
 
 template<>
-Value::MapType unique_ptr_copy(const Value::MapType& src)
+inline Value::MapType unique_ptr_copy(const Value::MapType& src)
 {
     Value::MapType rtn;
     for(auto& v : src)
-        rtn.insert( std::make_pair(v.first, std::make_unique<Value>(*(v.second)) ));
+        rtn.emplace( std::make_pair(v.first, std::make_unique<Value>(*(v.second)) ));
     return rtn;
 }
 
+inline bool in_range(double value, double min, double max)
+{ return (min <= value and value <= max); }
+
+inline bool is_equal(const Value::MapType& lhs, const Value::MapType& rhs)
+{
+    if(lhs.size() != rhs.size())    //edge case
+        return false;
+
+    for(const auto& val : lhs)
+    {
+        if(rhs.find(val.first) == rhs.end())
+            return false;
+        if(not (*(lhs.at(val.first)) == *(rhs.at(val.first))))
+            return false;
+    }
+    return true;
+}
+
+inline bool is_equal(const Value::ArrayType& lhs, const Value::ArrayType& rhs)
+{
+    return std::equal(lhs.begin(), lhs.end(),
+                      rhs.begin(), rhs.end(),
+                      []( const Value::Uptr& lhss, const Value::Uptr& rhss )
+                        { return *lhss == *rhss; }
+                     );
+}
 
 //////////////// VALUE IMpl
 
@@ -46,6 +90,10 @@ Value::Value(long long ll)
     : vtype(Type::SignedInt)
 {  value.SignedInt = ll; }
 
+Value::Value(int i)
+    : Value(static_cast<long long>(i))
+{  /**/ }
+
 Value::Value(unsigned long long ull)
     : vtype(Type::UnsignedInt)
 {  value.UnsignedInt = ull; }
@@ -61,6 +109,20 @@ Value::Value(BinaryType b)
 Value::Value(std::string s)
     : vtype(Type::String)
 {   construct_fromString(std::move(s)); }
+
+Value::Value(const char* c)
+    : Value(std::string(c))
+{  /**/  }
+
+Value::Value(std::initializer_list<Value> v)
+    : Value()   //I suffered a setback here... explanation below
+{
+    for(auto a : v)
+        push_back( std::move(a) );
+// The bug was the fact that I didn't call the default constructor( basically initializes vtype=Type::Null)
+// Thus, the move was failing in optimized builds
+// Lesson: learn to use in-class default construction to maintain a first-class construction invariant
+}
 
 
 Value::Value(Value&& v)
@@ -78,7 +140,6 @@ Value& Value::operator = (const Value& v)
     return *this;
 }
 
-//Work here!
 Value& Value::operator = (Value&& v)
 {
     move_from(std::move(v));
@@ -91,15 +152,11 @@ Value::~Value()
     destruct();
 }
 
-size_t Value::size() const
+size_t Value::size() const noexcept
 {
     switch (vtype) {
     case Type::Null:
         return 0;
-    case Type::String:
-        return value.String.size();
-    case Type::Binary:
-        return value.Binary.size();
     case Type::Array:
         return value.Array.size();
     case Type::Map:
@@ -109,14 +166,17 @@ size_t Value::size() const
     }
 }
 
-Value& Value::operator [] (size_t i)
+Type Value::type() const noexcept
+{ return vtype; }
+
+Value& Value::operator [] (int i)
 {
     if(vtype == Type::Array)
         return *(value.Array[i]);
     throw value_exception("Attempt to index 'Value'; 'Value' is not an Array!");
 }
 
-Value const& Value::operator [] (size_t i) const
+Value const& Value::operator [] (int i) const
 {
     if(vtype == Type::Array)
         return *(value.Array[i]);
@@ -126,12 +186,18 @@ Value const& Value::operator [] (size_t i) const
 Value& Value::operator [] (const std::string& s)
 {
     if(vtype == Type::Map)
+    {
+        if(value.Map.find(s) == value.Map.end())
+            value.Map.emplace( std::make_pair(s, std::make_unique<Value>(Value())));
         return *(value.Map[s]);
+    }
     if(vtype == Type::Null)
     {
         // convert to Map
+        destruct();
         construct_fromMap(MapType());
         vtype = Type::Map;
+        value.Map.emplace( std::make_pair(s, std::make_unique<Value>(Value())));
         return *(value.Map[s]);
     }
     throw value_exception("Attempt to index 'Value'; 'Value' is not a Key-Value pair (aka Object) !");
@@ -144,6 +210,233 @@ Value const& Value::operator [] (const std::string& s) const
     throw value_exception("Attempt to index 'Value const&'; 'Value const&' is not a Key-Value pair (aka Object) !");
 }
 
+Value& Value::operator [] (const char* c)
+{ return operator [] (std::string(c)); }
+
+Value const& Value::operator [] (const char* c) const
+{ return operator [] (std::string(c)); }
+
+void Value::push_back(Value&& v)
+{
+    switch (vtype) {
+    case Type::Null:
+        construct_fromArray(ArrayType());
+        vtype = Type::Array;
+    case Type::Array:
+        value.Array.emplace_back( std::make_unique<Value>( std::move(v) ) );
+        break;
+    default:
+    {
+        Value tmp(std::move(*this));
+        construct_fromArray(ArrayType());
+        value.Array.emplace_back(std::make_unique<Value>( std::move(tmp) ));
+        value.Array.emplace_back(std::make_unique<Value>( std::move(v) ));
+        vtype = Type::Array;
+        break;
+    }
+
+    }
+}
+
+void Value::push_back(const Value& v)
+{
+    switch (vtype) {
+    case Type::Null:
+        construct_fromArray(ArrayType());
+        vtype = Type::Array;
+    case Type::Array:
+        value.Array.emplace_back( std::make_unique<Value>(v) );
+        break;
+    default:
+    {
+        Value tmp(std::move(*this));
+        construct_fromArray(ArrayType());
+        value.Array.emplace_back(std::make_unique<Value>( std::move(tmp) ));
+        value.Array.emplace_back(std::make_unique<Value>( v ));
+        vtype = Type::Array;
+        break;
+    }
+
+    }
+}
+
+bool Value::isNull()    const noexcept { return vtype == Type::Null;   }
+bool Value::isArray()   const noexcept { return vtype == Type::Array;  }
+bool Value::isBinary()  const noexcept { return vtype == Type::Binary; }
+bool Value::isBool()    const noexcept { return vtype == Type::Bool;   }
+bool Value::isChar()    const noexcept { return vtype == Type::Char;   }
+bool Value::isFloat()   const noexcept { return vtype == Type::Float;  }
+bool Value::isMap()     const noexcept { return vtype == Type::Map;    }
+bool Value::isString()  const noexcept { return vtype == Type::String; }
+bool Value::isSignedInteger()   const noexcept { return vtype == Type::SignedInt;   }
+bool Value::isUnsignedInteger() const noexcept { return vtype == Type::UnsignedInt; }
+bool Value::isObject()  const noexcept  { return isMap();                       }
+bool Value::isNumeric()  const noexcept { return isInteger() or isFloat();     }
+bool Value::isInteger() const noexcept  { return isSignedInteger() or isUnsignedInteger(); }
+
+bool Value::isComparableWith(const Value &rhs) const noexcept
+{
+    if(type() == rhs.type())
+        return true;
+    return (isNumeric() and rhs.isNumeric());
+}
+
+
+//////////////// as<...> functions //////
+///
+///
+//////////////////////////
+
+long long Value::asInt64() const noexcept
+{
+    using limit = std::numeric_limits<long long>;
+
+    if(isSignedInteger())
+        return value.SignedInt;
+    if(isUnsignedInteger())
+        return in_range(value.UnsignedInt, limit::min(), limit::max()) ? value.UnsignedInt : 0;
+    if(isFloat())
+        return in_range(value.Float, limit::min(), limit::max()) ? value.Float : 0;
+
+    if(isChar())
+        return static_cast<long long>(value.Char);
+    if(isBool())
+        return value.Bool ? 1 : 0;
+    if(isString())
+    {
+        try { return std::stoll(value.String); }
+        catch (std::invalid_argument&) {}
+        catch (std::out_of_range&) {}
+        return 0;
+    }
+    return size();
+}
+
+
+unsigned long long Value::asUint64() const noexcept
+{
+    using limit = std::numeric_limits<unsigned long long>;
+
+    if(isUnsignedInteger())
+        return value.UnsignedInt;
+    if(isSignedInteger())
+        return in_range(value.SignedInt, limit::min(), limit::max()) ? value.SignedInt : 0;
+    if(isFloat())
+        return in_range(value.Float, limit::min(), limit::max()) ? value.Float : 0;
+    if(isChar())
+        return static_cast<unsigned long long>(value.Char);
+    if(isBool())
+        return value.Bool ? 1 : 0;
+    if(isString())
+    {
+        try { return std::stoull(value.String); }
+        catch (std::invalid_argument&) {}
+        catch (std::out_of_range&) {}
+        return 0;
+    }
+
+    return size();
+}
+
+double Value::asFloat() const noexcept
+{
+
+    if(isFloat())
+        return value.Float;
+    if(isString())
+    {
+        try { return std::stod(value.String); }
+        catch (std::invalid_argument&) {}
+        catch (std::out_of_range&) {}
+        return 0;
+    }
+
+    double k1 = asUint64();
+    double k2 = asInt64();
+
+    return k1 > k2 ? k1 : k2;
+}
+
+bool Value::asBool() const noexcept
+{
+    if(isBool())
+        return value.Bool;
+    if(isUnsignedInteger())
+        return value.UnsignedInt != 0;
+    if(isSignedInteger())
+        return value.SignedInt != 0;
+    if(isFloat())
+        return value.Float != 0;
+    if(isChar())
+        return value.Char != '\0';
+    return size() != 0;
+}
+
+int Value::asInt() const noexcept
+{
+    using limit = std::numeric_limits<int>;
+    return in_range(asInt64(), limit::min(), limit::max()) ? asInt64() : 0;
+}
+
+unsigned int Value::asUint() const noexcept
+{
+    using limit = std::numeric_limits<unsigned int>;
+    return in_range(asUint64(), limit::min(), limit::max()) ? asUint64() : 0;
+}
+
+std::string Value::asString() const noexcept
+{
+    if(isString())
+        return value.String;
+    if(isBool())
+        return value.Bool ? "true" : "false";
+    // if(isBinary())
+        //What should we do for Binary? Base64? or what?
+    if(isChar())
+        return {value.Char};
+    if(isSignedInteger())
+        return std::to_string(value.SignedInt);
+    if(isUnsignedInteger())
+        return std::to_string(value.UnsignedInt);
+    if(isFloat())
+        return std::to_string(value.Float);
+    return "";
+}
+
+inline Value::BinaryType as_binary(const void* src, size_t size)
+{
+    Value::BinaryType rtn(size);
+    std::memcpy(&rtn[0], src, size);
+    return rtn;
+}
+
+Value::BinaryType Value::asBinary() const noexcept
+{
+    if(isBinary())
+        return value.Binary;
+    switch (vtype) {
+    case Type::Char:
+        return as_binary(&value.Char, sizeof(value.Char));
+    case Type::Bool:
+        return as_binary(&value.Bool, sizeof(value.Bool));
+    case Type::SignedInt:
+        return as_binary(&value.SignedInt, sizeof(value.SignedInt));
+    case Type::UnsignedInt:
+        return as_binary(&value.UnsignedInt, sizeof(value.UnsignedInt));
+    case Type::Float:
+        return as_binary(&value.Float, sizeof(value.Float));
+    case Type::String:
+        //return as_binary(reinterpret_cast<byte*>(value.String), sizeof(value.Char));
+    case Type::Array:
+        //return as_binary(reinterpret_cast<byte*>(value.Array), sizeof(value.Array));
+    case Type::Map:
+        //return as_binary(reinterpret_cast<byte*>(value.Map), sizeof(value.Map));
+    case Type::Binary:
+    default:
+        break;
+    }
+    return Value::BinaryType();
+}
 
 //////////////// PRIVATE ////////////////
 /////////////////////////////////////////
@@ -155,25 +448,21 @@ Value const& Value::operator [] (const std::string& s) const
 
 void Value::construct_fromString(std::string&& s)
 {
-    destruct();
     new( &(value.String)) std::string(std::move(s));
 }
 
 void Value::construct_fromBinary(BinaryType&& b)
 {
-    destruct();
     new( &(value.Binary)) BinaryType(std::move(b));
 }
 
 void Value::construct_fromArray(ArrayType&& a)
 {
-    destruct();
     new( &(value.Array)) ArrayType(std::move(a));
 }
 
 void Value::construct_fromMap(MapType&& m)
 {
-    destruct();
     new( &(value.Map)) MapType(std::move(m));
 }
 
@@ -213,6 +502,7 @@ void Value::move_from(Value&& v)
         break;
     }
 
+    vtype = v.vtype;
     v.destruct();
 }
 
@@ -251,6 +541,7 @@ void Value::copy_from(const Value& v)
     default:
         break;
     }
+    vtype = v.vtype;
 }
 
 inline void Value::destruct() noexcept
@@ -279,11 +570,20 @@ inline void Value::destruct() noexcept
     }
 
     vtype = Type::Null;
+    //std::cout << "d " << std::flush;
 }
+
 
 //////////////////////////  CONVERSION OPERATOR  ///////////////////////////
 ///// I currently don't know a better way to avoid code duplication here
 ///// C++ forbids a const function to call a none const function
+
+
+///simple int
+Value::operator int ()
+{ return int( operator long long& () ); }
+Value::operator int () const
+{ return int( operator long long const& () ); }
 
 
 ///// long long
@@ -421,4 +721,40 @@ void timl::swap(Value& v1, Value& v2)
     v2.move_from( std::move( v1 ));
     v1.move_from( std::move( vt ));
 }
+
+/////////////////////// FREE OPERATORS ////////////
+
+bool timl::operator == (const Value& lhs, const Value& rhs)
+{
+    using limit = std::numeric_limits<double>;
+
+    if(lhs.isNumeric() and rhs.isNumeric())
+        return std::abs(lhs.asFloat() - rhs.asFloat()) <= limit::epsilon();
+
+    if(lhs.type() != rhs.type())
+        return false;
+
+    switch (rhs.type()) {
+    case Type::Null:
+        return true;
+    case Type::Char:
+        return lhs.value.Char == rhs.value.Char;
+    case Type::Bool:
+        return lhs.value.Bool == rhs.value.Bool;
+    case Type::String:
+        return lhs.value.String == rhs.value.String;
+    case Type::Binary:
+        return lhs.value.Binary == rhs.value.Binary;
+    case Type::Array:
+        return is_equal(lhs.value.Array, rhs.value.Array);
+    case Type::Map:
+        return is_equal(lhs.value.Map, rhs.value.Map);
+    default:
+        break;
+    }
+    return false;
+}
+
+bool timl::operator != (const Value& lhs, const Value& rhs)
+{ return not timl::operator == (lhs, rhs); }
 

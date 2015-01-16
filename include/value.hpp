@@ -1,3 +1,15 @@
+/*
+ * Copyright(C):    WhiZTiM, 2015
+ *
+ * This file is part of the TIML::UBEX C++14 library
+ *
+ * Distributed under the Boost Software License, Version 1.0.
+ *      (See accompanying file LICENSE_1_0.txt or copy at
+ *          http://www.boost.org/LICENSE_1_0.txt)
+ *
+ * Author: Ibrahim Timothy Onogu
+ * Email:  ionogu@acm.org
+ */
 #ifndef VALUE_H
 #define VALUE_H
 
@@ -6,6 +18,7 @@
 #include <vector>
 #include <numeric>
 #include <unordered_map>
+#include <initializer_list>
 #include "exception.hpp"
 #include "iterator.hpp"
 #include "types.hpp"
@@ -21,6 +34,8 @@ namespace timl {
         using BinaryType = std::vector<byte>;
         using MapType = std::unordered_map<std::string, Uptr>;
         using iterator = value_iterator<Value, ArrayType, MapType>;
+        //TODO
+        //using const_iterator = const value_iterator<Value, ArrayType, MapType>;
 
 
         union ValueHolder
@@ -40,37 +55,79 @@ namespace timl {
         };
 
 
-        explicit Value(bool);
-        explicit Value(char);
-        explicit Value(unsigned long long);
         Value();
+        Value(int);
+        Value(bool);
+        Value(char);
         Value(double);
         Value(long long);
-        Value(BinaryType);
+        Value(const char*);
+        Value(unsigned long long);
         Value(std::string);
+        Value(BinaryType);
+        Value(std::initializer_list<Value>);
 
         Value(Value&&);
         Value(const Value&);
 
         ~Value();
 
-        Type type() const;
-        size_t size() const;
+        Type type() const noexcept;
+        size_t size() const noexcept;
 
-        bool isMap() const;
-        bool isChar() const;
-        bool isBool() const;
-        bool isArray() const;
-        bool isObject() const;
-        bool isString() const;
-        bool isBinary() const;
-        bool isNumber() const;
+        bool isMap() const noexcept;
+        bool isNull() const noexcept;
+        bool isChar() const noexcept;
+        bool isBool() const noexcept;
+        bool isFloat() const noexcept;
+        bool isArray() const noexcept;
+        bool isObject() const noexcept;
+        bool isString() const noexcept;
+        bool isBinary() const noexcept;
+        bool isNumeric() const noexcept;
+        bool isInteger() const noexcept;
+        bool isSignedInteger() const noexcept;
+        bool isUnsignedInteger() const noexcept;
 
+        bool isComparableWith(const Value& rhs) const noexcept;
 
-        bool isUnsignedNumber() const;
-        bool isSignedNumber() const;
-        bool isInteger() const;
-        bool isFloat() const;
+        bool                asBool()   const noexcept;  //done
+        int                 asInt()    const noexcept;  //done
+        unsigned int        asUint()   const noexcept;  //done
+        long long           asInt64()  const noexcept;  //done
+        unsigned long long  asUint64() const noexcept;  //done
+        double              asFloat()  const noexcept;  //done
+        std::string         asString() const noexcept;  //done
+        BinaryType          asBinary() const noexcept;  //done
+
+        Value& operator = (const Value& lhs); //{ ss = lhs.ss;  return *this; }
+        Value& operator = (Value&& lhs); //{ ss = std::move(lhs.ss); return *this; }
+
+        Value& operator [] (int i);
+        Value const& operator [] (int i) const;
+
+        Value& operator [] (const char*);
+        Value const& operator [] (const char*) const;
+
+        Value& operator [] (const std::string&);
+        Value const& operator [] (const std::string&) const;
+
+        void push_back(const Value&);
+        void push_back(Value&&);
+
+        iterator begin() { return iterator(this, iterator::pos::begin); }
+        iterator end() { return iterator(this, iterator::pos::end); }
+
+        /* TODO
+        const_iterator begin() const { return cbegin(); }
+        const_iterator end() const { return cend(); }
+
+        const_iterator cbegin() const { return const_iterator(const_cast<const Value*>(this), iterator::pos::begin); }
+        const_iterator cend() const { return const_iterator(this, iterator::pos::end); }
+        */
+
+        operator int ();
+        operator int () const;
 
         operator bool& () &;
         operator bool const& () const&;
@@ -95,18 +152,8 @@ namespace timl {
         operator BinaryType& () &;
         operator BinaryType const& () const&;
 
-        Value& operator = (const Value& lhs); //{ ss = lhs.ss;  return *this; }
-        Value& operator = (Value&& lhs); //{ ss = std::move(lhs.ss); return *this; }
-
-        Value& operator [] (size_t i);
-        Value const& operator [] (size_t i) const;
-
-        Value& operator [] (const std::string&);
-        Value const& operator [] (const std::string&) const;
-
-        iterator begin() { return iterator(this, iterator::pos::begin); }
-
         friend void swap(Value&, Value&);
+        friend bool operator == (const Value&, const Value&);
 
     private:
 
@@ -120,13 +167,15 @@ namespace timl {
         void copy_from(const Value&);
 
         ValueHolder value;
-        Type vtype;
+        Type vtype = Type::Null;
         friend iterator;
 
 
     };
 
     void swap(Value&, Value&);
+    bool operator == (const Value&, const Value&);
+    bool operator != (const Value&, const Value&s);
 
 }
 #endif // VALUE_H
