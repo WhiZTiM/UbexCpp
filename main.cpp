@@ -11,9 +11,10 @@
  * Email:  ionogu@acm.org
  */
 
-#include <iostream>
-#include <iomanip>
 #include <chrono>
+#include <iomanip>
+#include <iostream>
+#include <algorithm>
 #include <type_traits>
 #include "include/value.hpp"
 #include <cppunit/ui/text/TestRunner.h>
@@ -36,6 +37,7 @@ class Value_Construction_Test : public CppUnit::TestFixture
 {
     CPPUNIT_TEST_SUITE( Value_Construction_Test );
     CPPUNIT_TEST( testConstructors );
+    CPPUNIT_TEST( testUniformBraceInitialization);
     CPPUNIT_TEST( testSizes );
     CPPUNIT_TEST( testEqaulity );
     CPPUNIT_TEST( testIneqaulity );
@@ -98,6 +100,31 @@ public:
         CPPUNIT_ASSERT( v_float->isNumeric() );
 
         CPPUNIT_ASSERT( v_map->operator[]("extras").isArray() );
+    }
+
+    void testUniformBraceInitialization()
+    {
+        Value Null{};
+        Value Char{'c'};
+        Value Bool{true};
+        Value SignedInt{-345};
+        Value UnsignedInt{34543ull};
+        Value Float{9.80665};
+        Value String{"Love"};
+        Value Array{*v_array};
+        Value Map{*v_map};
+        Value Binary{*v_binary};
+
+        CPPUNIT_ASSERT( Null.isNull() );
+        CPPUNIT_ASSERT( Char.isChar() );
+        CPPUNIT_ASSERT( Bool.isBool() );
+        CPPUNIT_ASSERT( SignedInt.isSignedInteger() );
+        CPPUNIT_ASSERT( UnsignedInt.isUnsignedInteger() );
+        CPPUNIT_ASSERT( Float.isFloat() );
+        CPPUNIT_ASSERT( String.isString() );
+        CPPUNIT_ASSERT( Array.isArray());
+        CPPUNIT_ASSERT( Map.isMap() );
+        CPPUNIT_ASSERT( Binary.isBinary() );
     }
 
     void testSizes()
@@ -927,10 +954,10 @@ public:
         Value Map(*v_map);
         Value Binary(*v_binary);
 
-        Null.push_back( "Sweet" );
+        Null.push_back( "Sweet" ); Value m; m.push_back("Sweet");
         CPPUNIT_ASSERT( Null.isArray() );
         CPPUNIT_ASSERT_EQUAL(size_t(1), Null.size());
-        CPPUNIT_ASSERT( Value({"Sweet"}) == Null );
+        CPPUNIT_ASSERT( m == Null );
 
         Char.push_back( "Sweet" );
         CPPUNIT_ASSERT( Char.isArray() );
@@ -1003,15 +1030,90 @@ public:
 
 
 
+
+
+
+
+class Value_Iterator_Test : public CppUnit::TestFixture
+{
+    CPPUNIT_TEST_SUITE( Value_Iterator_Test );
+    CPPUNIT_TEST( test_find );
+    CPPUNIT_TEST( test_remove );
+    CPPUNIT_TEST( test_iterator );
+    CPPUNIT_TEST( test_const_iterator );
+    CPPUNIT_TEST( test_modifying_iterator );
+    CPPUNIT_TEST( test_iterator_on_algorithm );
+    CPPUNIT_TEST_SUITE_END();
+public:
+    using T = Value::BinaryType::value_type;
+    void setUp() override
+    {
+        v_empty = std::make_unique<Value>(Value());
+        v_char = std::make_unique<Value>(Value('c'));
+        v_bool = std::make_unique<Value>(Value(true));
+        v_signedint = std::make_unique<Value>(Value(-700));
+        v_unsignedint = std::make_unique<Value>(Value(800ull));
+        v_float = std::make_unique<Value>(Value(3.1416));
+        v_string = std::make_unique<Value>(Value("string"));
+        v_array = std::make_unique<Value>(Value({34.657, "Yeepa", 466, -53, 'g'}));
+        v_map = std::make_unique<Value>(Value());
+
+        v_binary = std::make_unique<Value>(Value(Value::BinaryType({T(0xab), T(0xbc), T(0xcd), T(0xdf)})));
+
+        (*v_map)["name"] = "WhiZTiM";
+        (*v_map)["id"] = 12343;
+        (*v_map)["extras"] = { *v_array, "nice one bro!" };
+    }
+private:
+    Value::Uptr v_empty;
+    Value::Uptr v_char;
+    Value::Uptr v_bool;
+    Value::Uptr v_signedint;
+    Value::Uptr v_unsignedint;
+    Value::Uptr v_float;
+    Value::Uptr v_string;
+    Value::Uptr v_array;
+    Value::Uptr v_map;
+    Value::Uptr v_binary;
+public:
+
+    void test_find(){}
+    void test_remove(){}
+    void test_iterator(){}
+    void test_const_iterator(){}
+    void test_modifying_iterator(){}
+
+    void test_iterator_on_algorithm()
+    {
+        auto m = std::find(v_array->begin(), v_array->end(), Value(466));
+        CPPUNIT_ASSERT( m != v_array->end() );
+        CPPUNIT_ASSERT_EQUAL( "466"s, m->asString() );
+
+        const Value const_v_array = *v_array;
+        auto cm = std::find(const_v_array.begin(), const_v_array.end(), Value(466));
+        CPPUNIT_ASSERT( cm != const_v_array.end() );
+        CPPUNIT_ASSERT_EQUAL( "466"s, cm->asString() );
+    }
+
+};
+
+
+
+
 CPPUNIT_TEST_SUITE_REGISTRATION( Value_Construction_Test );
 CPPUNIT_TEST_SUITE_REGISTRATION( Value_Conversion_Test );
 CPPUNIT_TEST_SUITE_REGISTRATION( Value_Map_and_Array_Test );
+CPPUNIT_TEST_SUITE_REGISTRATION( Value_Iterator_Test );
 
 int main()
 {
     /*
     Value v{345};
     Value ha;
+    Value array = { Value("name", "Joy"), Value("id", 34) };
+
+    cout << "NAME: " << array[0]["name"].asString() << "\nid: " << array[1]["id"].asString() << endl;
+
     ha["sani"] = "Mark";
     ha["musa"] = "Yusuf";
     ha["kabir"] = 4546.34;

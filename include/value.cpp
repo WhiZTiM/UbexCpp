@@ -117,11 +117,22 @@ Value::Value(const char* c)
 Value::Value(std::initializer_list<Value> v)
     : Value()   //I suffered a setback here... explanation below
 {
+    if(v.size() == 1)
+    {
+        copy_from(*v.begin());
+        return;
+    }
     for(auto a : v)
         push_back( std::move(a) );
 // The bug was the fact that I didn't call the default constructor( basically initializes vtype=Type::Null)
 // Thus, the move was failing in optimized builds
 // Lesson: learn to use in-class default construction to maintain a first-class construction invariant
+}
+
+Value::Value(const std::string& key, Value val)
+    : Value()
+{
+    operator[](key) = val;
 }
 
 
@@ -258,6 +269,87 @@ void Value::push_back(const Value& v)
     }
 
     }
+}
+
+void Value::remove(const Value& v)
+{
+    switch (vtype) {
+    case Type::Array:
+    {
+        auto it = std::find_if(value.Array.begin(), value.Array.end(),
+                     [&v](const auto& m){ return v == *m; } );
+        if(it != value.Array.end() )
+            value.Array.erase(it);
+        break;
+    }
+    case Type::Map:
+        value.Map.erase(v);
+    default:
+        break;
+    }
+}
+
+Value::iterator Value::find(const Value& v)
+{
+    switch (vtype) {
+    case Type::Array:
+    {
+        auto it = std::find_if(value.Array.begin(), value.Array.end(),
+                     [&v](const auto& m){ return v == *m; } );
+        if(it == value.Array.end() )
+            return end();
+        return iterator(this, it);
+    }
+    case Type::Map:
+    {
+        auto it = value.Map.find(v);
+        if(it == value.Map.end())
+            return end();
+        return iterator(this, it);
+    }
+    default:
+        break;
+    }
+    return end();
+}
+
+
+Value::const_iterator Value::find(const Value& v) const
+{
+    switch (vtype) {
+    case Type::Array:
+    {
+        auto it = std::find_if(value.Array.begin(), value.Array.end(),
+                     [&v](const auto& m){ return v == *m; } );
+        if(it == value.Array.end() )
+            return end();
+        return const_iterator(this, it);
+    }
+    case Type::Map:
+    {
+        auto it = value.Map.find(v);
+        if(it == value.Map.end())
+            return end();
+        return const_iterator(this, it);
+    }
+    default:
+        break;
+    }
+    return end();
+}
+
+bool Value::contains(const Value& v) const
+{ return find(v) != end(); }
+
+Value::Keys Value::keys() const
+{
+    if(not isMap())
+        return Keys();
+    Keys rtn(value.Map.size());
+
+    for(const auto& k : value.Map)
+        rtn.push_back( k.first );
+    return rtn;
 }
 
 bool Value::isNull()    const noexcept { return vtype == Type::Null;   }

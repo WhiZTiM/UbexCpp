@@ -28,14 +28,16 @@ namespace timl {
     class Value
     {
     public:
+        using Keys = std::vector<std::string>;
         using Sptr = std::shared_ptr<Value>;
         using Uptr = std::unique_ptr<Value>;
         using ArrayType = std::vector<Uptr>;
         using BinaryType = std::vector<byte>;
         using MapType = std::unordered_map<std::string, Uptr>;
-        using iterator = value_iterator<Value, ArrayType, MapType>;
-        //TODO
-        //using const_iterator = const value_iterator<Value, ArrayType, MapType>;
+        using iterator = value_iterator<Value, ArrayType::iterator, MapType::iterator>;
+        using const_iterator = value_iterator<const Value, ArrayType::const_iterator, MapType::const_iterator>;
+        friend iterator;
+        friend const_iterator;
 
 
         union ValueHolder
@@ -63,6 +65,7 @@ namespace timl {
         Value(long long);
         Value(const char*);
         Value(unsigned long long);
+        Value(const std::string&, Value);
         Value(std::string);
         Value(BinaryType);
         Value(std::initializer_list<Value>);
@@ -91,17 +94,17 @@ namespace timl {
 
         bool isComparableWith(const Value& rhs) const noexcept;
 
-        bool                asBool()   const noexcept;  //done
-        int                 asInt()    const noexcept;  //done
-        unsigned int        asUint()   const noexcept;  //done
-        long long           asInt64()  const noexcept;  //done
-        unsigned long long  asUint64() const noexcept;  //done
-        double              asFloat()  const noexcept;  //done
-        std::string         asString() const noexcept;  //done
-        BinaryType          asBinary() const noexcept;  //done
+        bool                asBool()   const noexcept;
+        int                 asInt()    const noexcept;
+        unsigned int        asUint()   const noexcept;
+        long long           asInt64()  const noexcept;
+        unsigned long long  asUint64() const noexcept;
+        double              asFloat()  const noexcept;
+        std::string         asString() const noexcept;
+        BinaryType          asBinary() const noexcept;
 
-        Value& operator = (const Value& lhs); //{ ss = lhs.ss;  return *this; }
-        Value& operator = (Value&& lhs); //{ ss = std::move(lhs.ss); return *this; }
+        Value& operator = (const Value& lhs);
+        Value& operator = (Value&& lhs);
 
         Value& operator [] (int i);
         Value const& operator [] (int i) const;
@@ -115,16 +118,31 @@ namespace timl {
         void push_back(const Value&);
         void push_back(Value&&);
 
-        iterator begin() { return iterator(this, iterator::pos::begin); }
-        iterator end() { return iterator(this, iterator::pos::end); }
+        bool contains(const Value&) const;
+        void remove(const Value&);
 
-        /* TODO
-        const_iterator begin() const { return cbegin(); }
-        const_iterator end() const { return cend(); }
+        iterator find(const Value&);
+        const_iterator find(const Value&) const;
 
-        const_iterator cbegin() const { return const_iterator(const_cast<const Value*>(this), iterator::pos::begin); }
-        const_iterator cend() const { return const_iterator(this, iterator::pos::end); }
-        */
+        Keys keys() const;
+
+        iterator begin()
+        { return iterator(this, iterator::pos::begin); }
+
+        iterator end()
+        { return iterator(this, iterator::pos::end); }
+
+        const_iterator begin() const
+        { return cbegin(); }
+
+        const_iterator end() const
+        { return cend(); }
+
+        const_iterator cbegin() const
+        { return const_iterator(this, const_iterator::pos::begin); }
+
+        const_iterator cend() const
+        { return const_iterator(this, const_iterator::pos::end); }
 
         operator int ();
         operator int () const;
@@ -144,9 +162,9 @@ namespace timl {
         operator unsigned long long& () &;
         operator unsigned long long const& () const&;
 
-        operator std::string () &&; // { std::cout << "Move called\n"; return std::move(ss); }
-        operator std::string& () &; // { std::cout << "Ref called\n"; return ss; }
-        operator std::string const& () const&; // { std::cout << "Const Ref called\n"; return ss; }
+        operator std::string () &&;
+        operator std::string& () &;
+        operator std::string const& () const&;
 
         operator BinaryType () &&;
         operator BinaryType& () &;
@@ -168,7 +186,6 @@ namespace timl {
 
         ValueHolder value;
         Type vtype = Type::Null;
-        friend iterator;
 
 
     };
