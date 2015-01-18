@@ -283,7 +283,7 @@ void Value::remove(const Value& v)
         break;
     }
     case Type::Map:
-        value.Map.erase(v);
+        value.Map.erase(v.asString());
     default:
         break;
     }
@@ -302,7 +302,7 @@ Value::iterator Value::find(const Value& v)
     }
     case Type::Map:
     {
-        auto it = value.Map.find(v);
+        auto it = value.Map.find(v.asString());
         if(it == value.Map.end())
             return end();
         return iterator(this, it);
@@ -345,8 +345,8 @@ Value::Keys Value::keys() const
 {
     if(not isMap())
         return Keys();
-    Keys rtn(value.Map.size());
 
+    Keys rtn;
     for(const auto& k : value.Map)
         rtn.push_back( k.first );
     return rtn;
