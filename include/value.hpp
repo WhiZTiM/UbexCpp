@@ -10,6 +10,36 @@
  * Author: Ibrahim Timothy Onogu
  * Email:  ionogu@acm.org
  */
+
+/**
+  * @file value.hpp
+  * A generalized container object for all value types exchageable by the protocol
+  *
+  * @brief A generalized container object for all value types exchageable by the protocol
+  * @author WhiZTiM
+  * @date January, 2015
+  * @version 0.0.1
+  *
+  * The @class Value provides a simple and initutive inteface for storage and manipulation of types
+  * The class stores ints, unsigned ints, floating point numbers, strings, character, ke-value maps and arrays
+  *
+  * \code
+  * Value v{345};
+    Value ha;
+    Value array = { Value("name", "Joy"), Value("id", 34) };
+
+    cout << "NAME: " << array[0]["name"].asString() << "\nid: " << array[1]["id"].asString() << endl;
+
+    ha["sani"] = "Mark";
+    ha["musa"] = "Yusuf";
+    ha["kabir"] = 4546.34;
+    cout << "value: " << ha["kabir"].asString() << endl << endl;
+    for(const auto& a : ha)
+        cout << '\t' << a.asFloat() << endl;
+    \endcode
+  *
+  */
+
 #ifndef VALUE_H
 #define VALUE_H
 
@@ -25,6 +55,10 @@
 
 namespace timl {
 
+    /*!
+     * \brief The Value class
+     *
+     */
     class Value
     {
     public:
@@ -92,6 +126,14 @@ namespace timl {
         bool isSignedInteger() const noexcept;
         bool isUnsignedInteger() const noexcept;
 
+        /*!
+         * \fn isComparableWith
+         * \brief returns true if the type of \a rhs can be compared with the current \ref Value object
+         * \param[out] rhs
+         * \pre \a rhs is valid
+         * \post class is unmodified
+         * \return \a true
+         */
         bool isComparableWith(const Value& rhs) const noexcept;
 
         bool                asBool()   const noexcept;
