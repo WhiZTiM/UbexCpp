@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <type_traits>
 #include "include/value.hpp"
+#include "include/stream_reader.hpp"
 #include <cppunit/ui/text/TestRunner.h>
 #include <cppunit/extensions/HelperMacros.h>
 #include <cppunit/extensions/TestFactoryRegistry.h>
@@ -41,6 +42,14 @@ int main()
     extern int weird_cppunit_extern_bug_value_conversion_test;      weird_cppunit_extern_bug_value_conversion_test = 1;
     extern int weird_cppunit_extern_bug_value_map_and_array_test;   weird_cppunit_extern_bug_value_map_and_array_test = 1;
     extern int weird_cppunit_extern_bug_value_iterator_test;        weird_cppunit_extern_bug_value_iterator_test = 1;
+
+    std::ifstream ff;
+    ff.open("sample1.ubex", ios::binary);
+    if(ff.is_open())
+        cout << "Hallelujah!" << endl;
+    OstreamReader reader(ff);
+    auto val = reader.getNextValue();
+    cout <<"\tValue: " << val["int8"].asString() << endl;
     return 0;
 }
 
