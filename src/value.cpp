@@ -147,6 +147,8 @@ Value::Value(const Value& v)
 
 Value& Value::operator = (const Value& v)
 {
+    if(this == &v)
+        return *this;
     copy_from(v);
     return *this;
 }
