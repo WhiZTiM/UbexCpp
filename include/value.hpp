@@ -23,7 +23,7 @@
   * The @class Value provides a simple and initutive inteface for storage and manipulation of types
   * The class stores ints, unsigned ints, floating point numbers, strings, character, ke-value maps and arrays
   *
-  * \code
+  * @code
   * Value v{345};
     Value ha;
     Value array = { Value("name", "Joy"), Value("id", 34) };
@@ -36,7 +36,7 @@
     cout << "value: " << ha["kabir"].asString() << endl << endl;
     for(const auto& a : ha)
         cout << '\t' << a.asFloat() << endl;
-    \endcode
+    @endcode
   *
   */
 
@@ -62,18 +62,40 @@ namespace timl {
     class Value
     {
     public:
+        //! An alias for std::vector<std::strings> which is the Type returned by \ref keys()
         using Keys = std::vector<std::string>;
+
+        //! A pattern type alias, i.e (std::shared_ptr<Value>)
         using Sptr = std::shared_ptr<Value>;
+
+        //! A pattern type alias, i.e (std::unique_ptr<Value>)
         using Uptr = std::unique_ptr<Value>;
+
+        //! An alias used to internally represent \ref Type "Array" types
         using ArrayType = std::vector<Uptr>;
+
+        //! An alias used to internally represent \ref Type "Binary" types
+        //! \note \a byte is an alias for \e unsigned \e char
         using BinaryType = std::vector<byte>;
+
+        //! An alias used to internally represent \ref Type "Map" types
         using MapType = std::unordered_map<std::string, Uptr>;
+
+        //! Iterator alias for accessing values of an iterable value object
         using iterator = value_iterator<Value, ArrayType::iterator, MapType::iterator>;
+
+        //! Iterator alias for accessing values of an iterable value object
         using const_iterator = value_iterator<const Value, ArrayType::const_iterator, MapType::const_iterator>;
+
         friend iterator;
         friend const_iterator;
 
 
+        /*!
+         * \brief This is the union type that actually stores the data for Value class
+         * Every Value object has exactly one instance of a ValueHolder.
+         * \remarks ValueHolder is 64bytes on 64bit systems
+         */
         union ValueHolder
         {
             char Char;
@@ -110,29 +132,58 @@ namespace timl {
         ~Value();
 
         Type type() const noexcept;
+
+        /*!
+         * \brief returns the number of items contained in this Value Object
+         * \return std::size_t(1) for none Null, Array and Map types
+         */
         size_t size() const noexcept;
 
+        //! Returns whether the contained type is a (Key-Value) Map {like std::unordered_map}
         bool isMap() const noexcept;
+
+        //! Returns whether the contained type is Null (empty)
         bool isNull() const noexcept;
+
+        //! Returns whether the contained type is a single Character (char)
         bool isChar() const noexcept;
+
+        //! Returns whether the contained type is a boolean (bool)
         bool isBool() const noexcept;
+
+        //! Returns whether the contained type is a floating point type (double)
         bool isFloat() const noexcept;
+
+        //! Returns whether the contained type is a floating point type. (double)
         bool isArray() const noexcept;
+
+        //! The same thing as \ref isMap()
         bool isObject() const noexcept;
+
+        //! Returns whether the contained type is a string type. (std::string)
         bool isString() const noexcept;
+
+        //! Returns whether the contained type is \ref BinaryType "Binary"
         bool isBinary() const noexcept;
+
+        //! Returns whether the contained type is a numeric type. ( double or {(unsigned)int/long long} )
         bool isNumeric() const noexcept;
+
+        //! Returns whether the contained type is an integer type. ( {(unsigned)int/long long} )
         bool isInteger() const noexcept;
+
+        //! Returns whether the contained type is an signed integer type. ( int/long long )
         bool isSignedInteger() const noexcept;
+
+        //! Returns whether the contained type is an unsigned integer type. ( unsigned int/unsigned long long )
         bool isUnsignedInteger() const noexcept;
 
         /*!
          * \fn isComparableWith
-         * \brief returns true if the type of \a rhs can be compared with the current \ref Value object
-         * \param[out] rhs
-         * \pre \a rhs is valid
-         * \post class is unmodified
-         * \return \a true
+         * \brief determines whether the type of \a rhs can be compared with the type of the current \ref Value object
+         * \param[in] rhs
+         * \return \a true if
+         * \code this->type() == rhs.type() or timl::isNumeric(rhs.type()) and timl::isNumeric(this->type()) \endcode
          */
         bool isComparableWith(const Value& rhs) const noexcept;
 
@@ -166,6 +217,11 @@ namespace timl {
         iterator find(const Value&);
         const_iterator find(const Value&) const;
 
+        /*!
+         * \brief retrieve all the keys for accessing this Object through operator []
+         * \pre \code this->isMap() \endcode
+         * \return \ref Keys containing map keys. If precondition isn't met, an empty \ref Keys "key"
+         */
         Keys keys() const;
 
         iterator begin()
