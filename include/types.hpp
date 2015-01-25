@@ -11,6 +11,17 @@
  * Email:  ionogu@acm.org
  */
 
+/**
+  * @file types.hpp
+  * basic helper funtions and definition of types and Type enumeration
+  *
+  * @brief types helper
+  * @author WhiZTiM
+  * @date January, 2015
+  * @version 0.0.1
+  *
+  */
+
 #ifndef TYPES_HPP
 #define TYPES_HPP
 
@@ -18,6 +29,10 @@ namespace timl {
 
     using byte = unsigned char;
 
+    /*!
+     * \enum Type
+     * \brief The Type enum
+     */
     enum class Type
     {
         Null,
@@ -38,6 +53,7 @@ namespace timl {
         Char    = 'c',
         True    = 't',
         False   = 'f',
+        Bool    = 'a',
 
         Int16   = 'j',
         Int32   = 'k',
