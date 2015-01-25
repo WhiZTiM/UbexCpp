@@ -1,3 +1,16 @@
+/*
+ * Copyright(C):    WhiZTiM, 2015
+ *
+ * This file is part of the TIML::UBEX C++14 library
+ *
+ * Distributed under the Boost Software License, Version 1.0.
+ *      (See accompanying file LICENSE_1_0.txt or copy at
+ *          http://www.boost.org/LICENSE_1_0.txt)
+ *
+ * Author: Ibrahim Timothy Onogu
+ * Email:  ionogu@acm.org
+ */
+
 #ifndef STREAM_READER_HPP
 #define STREAM_READER_HPP
 
@@ -28,9 +41,10 @@ namespace timl {
     class StreamReader
     {
     public:
-        StreamReader(StreamType& Stream);// : stream(Stream) {};
+        StreamReader(StreamType& Stream);
 
         Value getNextValue();
+        StreamType& getStreamRef() { return stream; }
     private:
         Value extract_nextValue(size_t value_count, MarkerType type = MarkerType::Object, byte type_mark = 'n');
 
