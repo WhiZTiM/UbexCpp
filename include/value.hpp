@@ -13,7 +13,7 @@
 
 /**
   * @file value.hpp
-  * A generalized container object for all value types exchageable by the protocol
+  * Contains the Value class and a few functions for Argument Dependent Lookup (ADL)
   *
   * @brief A generalized container object for all value types exchageable by the protocol
   * @author WhiZTiM
@@ -57,7 +57,7 @@ namespace timl {
 
     /*!
      * \brief The Value class
-     *
+     * A generalized container object for all value types exchageable by the protocol
      */
     class Value
     {
@@ -100,8 +100,8 @@ namespace timl {
         {
             char Char;
             bool Bool;
-            long long SignedInt;
-            unsigned long long UnsignedInt;
+            long long SignedInt;        //! Prefered for all integer representable within it's range
+            unsigned long long UnsignedInt;     //! To be Used when explicitly requested or higher values are to be stored
             double Float;
             std::string String;
             ArrayType Array;
@@ -113,24 +113,153 @@ namespace timl {
         };
 
 
+        /*!
+         * \brief contstructs a null Value containing nothing
+         * \post isNull() == true
+         */
         Value();
+
+        /*!
+         * \brief contstructs Value containing the given \e int
+         * \post isSignedInteger() == true \e and type() == Type::SignedInt
+         * \remarks you can safely call the \e int convertion operator int()
+         *
+         * This constructor is mainly for convenience, it delegates construction to Value(long long)
+         * \see Value(long long)
+         */
         Value(int);
+
+        /*!
+         * \brief contstructs Value containing the given \e bool
+         * \post isBool() == true \e and type() == Type::Bool
+         * \remarks you can safely call the \e bool conversion operator
+         */
         Value(bool);
+
+        /*!
+         * \brief contstructs Value containing the given \e char
+         * \post isChar() == true \e and type() == Type::Char
+         * \remarks you can safely call the \e char conversion operator
+         */
         Value(char);
+
+        /*!
+         * \brief contstructs Value containing the given \e double
+         * \post isFloat() == true \e and type() == Type::Float
+         * \note for \e float type, you may want to convert to double first, because there is no constructor for \e float
+         *
+         * \remarks you can safely call the \e double conversion operator
+         */
         Value(double);
+
+        /*!
+         * \brief contstructs Value containing the given \e long \e long
+         * \post isSignedInteger() == true \e and type() == Type::SignedInt
+         * \remarks you can safely call the \e long \e long conversion operator long long& ()&
+         *
+         * \note if compiler complains of ambigious constructor call, use the \e ll prefix...
+         * This is the constructor that get's called for signed integer type.
+         */
         Value(long long);
+
+        /*!
+         * \brief contstructs Value containing the given \e const \e char*
+         * \post isString() == true \e and type() == Type::String
+         * \remarks you can safely call the \e std::string conversion operators
+         *
+         * This constructor is mainly for convenience, it delegates construction to Value(std::string)
+         */
         Value(const char*);
+
+        /*!
+         * \brief contstructs Value containing the given \e long \e long
+         * \post isUnsignedInteger() == true \e and type() == Type::UnsignedInt
+         * \remarks you can safely call the \e unsigned \e long \e long conversion operator
+         *
+         * \note if compiler complains of ambigious constructor call, use the \e ll prefix...
+         * This is the constructor that get's called for signed integer type.
+         */
         Value(unsigned long long);
+
+        /*!
+         * \brief contstructs a map-type Value with the given \e std::string as \b key and \b val as Value
+         * \post isMap() == true \e and type() == Type::Map
+         *
+         * \code
+         * Value v1; //an empty value
+         * v1["key"] = "C++14!";
+         *
+         * // This is same as
+         * Value v2("key", "C++14!);
+         *
+         * v1 == v2 ; //true
+         * \endcode
+         *
+         */
         Value(const std::string&, Value);
+
+
+        /*!
+         * \brief contstructs Value containing the given \e std::string
+         * \post isString() == true \e and type() == Type::String
+         * \remarks you can safely call the \e std::string conversion operators
+         */
         Value(std::string);
+
+
+        /*!
+         * \brief contstructs Value containing the given BinaryType
+         * \post isBinary() == true \e and type() == Type::Binary
+         * \remarks you can safely call the \e BinaryType conversion operators
+         */
         Value(BinaryType);
+
+
+        /*!
+         * \brief uniform-brace initialization constructor
+         * \post For single arguments, it has the same effect as calling the single argument constructors...
+         * For more than one argument, then \b type() \b == \b Type::Array \e and isArray() \b == \b true
+         *
+         * Example
+         * \code
+         * Value v1{-3.1416};
+         * v1.isSignedInteger();    //true
+         * v1.isArray();            //false
+         *
+         * Value v2{"coward", 9.345};
+         * v2.isSignedInteger();    //false
+         * v2.isArray();            //true
+         *
+         * Value v3("m1", "mmm");
+         * Value v4{"m1", "mmm"};
+         *
+         * v3.isMap();              //true
+         * v4.isMap();              //false
+         * v3.isArray();            //false
+         * v4.isArray();            //true
+         * \endcode
+         */
         Value(std::initializer_list<Value>);
 
+
+        /*!
+         * \brief moves the given value and sets \b val to \b Type::Null
+         * \post this now contains moved value, and \b val.isNull() \b == \b true
+         */
         Value(Value&&);
+
+        /*!
+         * \brief Copies the given value
+         */
         Value(const Value&);
 
+
+        /*!
+         * \brief recursively destroys all contained objects
+         */
         ~Value();
 
+        //! returns the \b Type contained by Value::ValueHolder
         Type type() const noexcept;
 
         /*!
