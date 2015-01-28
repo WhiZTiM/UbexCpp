@@ -223,17 +223,17 @@ namespace timl {
     {
         if(isObjectStart(marker))
         {
-            value.push_back(extract_count_and_Value());
+            value = extract_count_and_Value();
         }
 
         else if(isHomoArrayStart(marker))
         {
-            value.push_back(extract_count_and_HomoArray());
+            value = extract_count_and_HomoArray();
         }
 
         else if(isHetroArrayStart(marker))
         {
-            value.push_back(extract_count_and_HetroArray());
+            value = extract_count_and_HetroArray();
         }
     }
 
@@ -278,7 +278,7 @@ namespace timl {
         if(not icount.second)
             throw parsing_exception("Stream does not contain a valid Object count - Count");
 
-        return extract_nextValue(icount.first);
+        return extract_nextValue(icount.first, MarkerType::Object);
     }
 
     template<typename StreamType>
