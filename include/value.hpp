@@ -176,8 +176,8 @@ namespace timl {
          * \post isUnsignedInteger() == true \e and type() == Type::UnsignedInt
          * \remarks you can safely call the \e unsigned \e long \e long conversion operator
          *
-         * \note if compiler complains of ambigious constructor call, use the \e ll prefix...
-         * This is the constructor that get's called for signed integer type.
+         * \note if compiler complains of ambigious constructor call, use the \e ull prefix...
+         * This is the constructor that get's called for unsigned integer type.
          */
         Value(unsigned long long);
 
@@ -316,12 +316,82 @@ namespace timl {
          */
         bool isComparableWith(const Value& rhs) const noexcept;
 
+        /*!
+         * \brief unconditionally converts the contained type to \e bool using the following rules
+         * - correct values are guranteed if the contained type is \e bool
+         * - if the contained type is numeric, it returns true if the value is not \b 0
+         * - if is character, returns, operator char & ()& != '\0'
+         * - if the contained type is string, map, array, or binary, it returns true if size() > 0;
+         * \remarks This function is guranteed not to throw
+         */
         bool                asBool()   const noexcept;
+
+        /*!
+         * \brief unconditionally converts the contained type to \e int using the following rules
+         * - correct values are guranteed if Value was constructed with Value(int)
+         * - if the contained type is numeric, it returns it if it fits within the range representable
+         * by an integer, otherwise, returns \b 0
+         * \note this function actually delgates conversion to asInt64(), please refer to it for further rules
+         * \remarks This function is guranteed not to throw
+         */
         int                 asInt()    const noexcept;
+
+        /*!
+         * \brief unconditionally converts the contained type to \a unsigned \a int using the following rule
+         * - if the contained type is numeric, it returns it if it fits within the range representable
+         * by an \e unsigned \e int, otherwise, returns \b 0
+         * \note this function actually delgates conversion to asUint64(), please refer to it for further rules
+         * \remarks This function is guranteed not to throw
+         */
         unsigned int        asUint()   const noexcept;
+
+        /*!
+         * \brief unconditionally converts the contained type to \e long \e long using the following rules
+         * - correct values are guranteed if type() is Type::SignedInt
+         * - if the contained type is numeric, it returns it if it fits within the range representable
+         * by an \e long \e long integer, otherwise, returns \b 0
+         * - if the contained type is string, it attempts to convert it using "std::stoll".
+         * Exceptions thrown by it are handled internally
+         * - otherwise, this function returns size()
+         * \remarks Except when operator ::new fails, this function is guranteed not to throw.
+         */
         long long           asInt64()  const noexcept;
+
+        /*!
+         * \brief unconditionally converts the contained type to \e unsigned \e long \e long using the following rules
+         * - correct values are guranteed if type() is Type::UnsignedInt
+         * - if the contained type is numeric, it returns it if it fits within the range representable
+         * by an \e unsigned \e long \e long integer, otherwise, returns \b 0
+         * - if the contained type is string, it attempts to convert it using "std::stoull".
+         * Exceptions thrown by it are handled internally
+         * - otherwise, this function returns size()
+         * \remarks Except when operator ::new fails, this function is guranteed not to throw.
+         */
         unsigned long long  asUint64() const noexcept;
+
+        /*!
+         * \brief unconditionally converts the contained type to \e double using the following rules
+         * - correct values are guranteed if type() is Type::Float
+         * - if the contained type is numeric, it returns it if it fits within the range representable
+         * by a \e double, otherwise, returns \b 0.0
+         * - if the contained type is string, it attempts to convert it using "std::stod".
+         * Exceptions thrown by it are handled internally
+         * - otherwise, this function returns size()
+         * \note this function actually delgates conversion to asInt64(), so refer to it for further behavior
+         * \remarks Except when operator ::new fails, this function is guranteed not to throw.
+         */
         double              asFloat()  const noexcept;
+
+        /*!
+         * \brief unconditionally converts the contained type to \e std::string using the following rules
+         * - correct values are guranteed if type() is Type::String
+         * or is of Type::String
+         * - if the contained type is numeric, it returns it in string form,
+         * - if the contained type is string, it attempts to convert it using "std::stod".
+         * Exceptions thrown by it are handled internally
+         * - otherwise, this function returns size()
+         * \remarks This function is guranteed not to throw.
+         */
         std::string         asString() const noexcept;
         BinaryType          asBinary() const noexcept;
 
@@ -371,13 +441,18 @@ namespace timl {
         const_iterator cend() const
         { return const_iterator(this, const_iterator::pos::end); }
 
+        //! casts to the to the integer contained, else throws bad_value_cast
         operator int ();
         operator int () const;
 
+        //! casts to a reference to the bool contained, else throws bad_value_cast
         operator bool& () &;
+        //! casts to a const reference to the bool contained, else throws bad_value_cast
         operator bool const& () const&;
 
+        //! casts to a reference to the character contained, else throws bad_value_cast
         operator char& () &;
+        //! casts to a const reference to the character contained, else throws bad_value_cast
         operator char const& () const&;
 
         operator double& () &;
