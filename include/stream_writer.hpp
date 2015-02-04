@@ -48,6 +48,9 @@ namespace timl {
 
         void update(const std::pair<size_t, bool>&, std::pair<size_t, bool>&);
 
+        bool write(byte);
+        bool write(byte*, std::size_t);
+
         StreamType& stream;
     };
 
@@ -69,8 +72,7 @@ namespace timl {
     {
         auto keys = value.keys();
         std::pair<size_t, bool> rtn(1, false);
-        byte b = '{';
-        stream.write(to_cbyte(&b), 1);
+        write('{');
 
         for(const auto& key : keys)
         {
@@ -101,10 +103,22 @@ namespace timl {
 
             update(k, rtn);
         }
-        b = '}';
-        stream.write(to_cbyte(&b), 1);
+        write('}');
         rtn.first += 1;
         return rtn;
+    }
+
+    template<typename StreamType>
+    bool StreamWriter<StreamType>::write(byte b)
+    {
+        return write(&b, 1);
+    }
+
+    template<typename StreamType>
+    bool StreamWriter<StreamType>::write(byte* b, std::size_t sz)
+    {
+        stream.write(to_cbyte(b), sz);
+        return true;
     }
 
     template<typename StreamType>
@@ -117,7 +131,40 @@ namespace timl {
     template<typename StreamType>
     std::pair<size_t, bool> StreamWriter<StreamType>::append_null()
     {
+        write(static_cast<byte>(Marker::Null));
+        return std::make_pair(1, true);
+    }
 
+    template<typename StreamType>
+    std::pair<size_t, bool> StreamWriter<StreamType>::append_Bool(bool b)
+    {
+        if(b)
+            write(static_cast<byte>(Marker::True));
+        else
+            write(static_cast<byte>(Marker::False));
+        return std::make_pair(1, true);
+    }
+
+    template<typename StreamType>
+    std::pair<size_t, bool> StreamWriter<StreamType>::append_char(char c)
+    {
+        write(static_cast<byte>(Marker::Char));
+        write(static_cast<byte>(c));
+        return std::make_pair(1, true);
+    }
+
+    template<typename StreamType>
+    std::pair<size_t, bool> StreamWriter<StreamType>::append_key(const std::string& key)
+    {
+        //! \todo Assert key.size() is less than 256 characters
+        if(key.size() > 255)
+            throw std::logic_error("Don't you obey invariants?");
+
+        std::size_t key_size = key.size();
+        write(static_cast<byte>(key_size));
+        write(to_byte(key.c_str()), key_size);
+
+        return std::make_pair(1 + key_size, true);
     }
 
 }
