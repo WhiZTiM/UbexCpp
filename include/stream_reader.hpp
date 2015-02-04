@@ -14,7 +14,7 @@
 #ifndef STREAM_READER_HPP
 #define STREAM_READER_HPP
 
-#include "conversions.hpp"
+#include "stream_helpers.hpp"
 #include "value.hpp"
 #include <fstream>
 #include <cstring>
@@ -23,30 +23,35 @@
 
 namespace timl {
 
-    using cbyte = char;
-    static_assert(sizeof(cbyte) == 1, "");
-
-    inline byte* to_byte(cbyte* b) { return reinterpret_cast<byte*>(b); }
-    inline cbyte* to_cbyte(byte* b) { return reinterpret_cast<cbyte*>(b); }
-
-    struct KeyMarker
-    {
-        byte len;
-        byte marker;
-        byte value[256];
-    };
-
     enum class MarkerType { Object, HetroArray, HomoArray };
+
     template<typename StreamType>
     class StreamReader
     {
     public:
+
+        struct policy_violation : parsing_exception
+        {
+            policy_violation(const std::string& str) : parsing_exception(""), ss(str) {}
+            const char* what() const noexcept { return ss.c_str(); }
+            std::string ss;
+        };
+
+
         StreamReader(StreamType& Stream);
 
         Value getNextValue();
-        StreamType& getStreamRef() { return stream; }
+
+        bool getNextValue(Value& v);
+
+        StreamType& getStream() { return stream; }
+
+        std::size_t getBytesRead() const { return bsf; }
+
+        std::string getLastError() const { return last_error; }
+
     private:
-        Value extract_nextValue(size_t value_count, MarkerType type = MarkerType::Object, byte type_mark = 'n');
+        void extract_nextValue(Value &vref, size_t value_count, MarkerType type = MarkerType::Object, byte type_mark = 'n');
 
         KeyMarker extract_nextKeyMarker();
 
@@ -63,14 +68,20 @@ namespace timl {
         std::pair<std::string, bool> extract_String();
         std::pair<Value::BinaryType, bool> extract_Binary();
 
-        Value extract_count_and_Value();
-        Value extract_count_and_HomoArray();
-        Value extract_count_and_HetroArray();
+        void extract_count_and_Value(Value& v);
+        void extract_count_and_HomoArray(Value& v);
+        void extract_count_and_HetroArray(Value& v);
         void extract_singleValueTo(byte marker, Value& value);
         void extract_containerValueTo(byte marker, Value& value);
         void validate_container_end(MarkerType type);
 
+        bool read(byte&);
+        bool read(byte*, std::size_t);
+
         StreamType& stream;
+        std::string last_error;
+        std::size_t bsf = 0;    //! bytes so far
+        const ValueSizePolicy vsz = {1024, 1024, 1024, 1024, 1024, 1024};
     };
 
     template<typename StreamType>
@@ -82,18 +93,54 @@ namespace timl {
     template<typename StreamType>
     Value StreamReader<StreamType>::getNextValue()
     {
-        byte b;
-        stream.read(to_cbyte(&b), 1);
-        if(not isObjectStart(b))
-            throw parsing_exception("Stream does not contain a valid Object - ObjectStartMarker");
-
-        return extract_count_and_Value();
+        Value v;        getNextValue(v);        return v;
     }
 
     template<typename StreamType>
-    Value StreamReader<StreamType>::extract_nextValue(size_t value_count, MarkerType type, byte type_mark)
+    bool StreamReader<StreamType>::getNextValue(Value& v)
     {
-        Value rtn;
+        bool good = false;
+
+        try
+        {
+            bsf = 0;
+            byte b;
+            read(b);
+            if(not isObjectStart(b))
+                throw parsing_exception("Stream does not contain a valid Object - ObjectStartMarker");
+            extract_count_and_Value(v);
+            good = true;
+        }
+        catch(parsing_exception& pexecpt)
+        {
+            last_error = pexecpt.what();
+        }
+        return good;
+    }
+
+    template<typename StreamType>
+    bool StreamReader<StreamType>::read(byte& b)
+    {
+        read(&b, 1);
+        return true;
+    }
+
+    template<typename StreamType>
+    bool StreamReader<StreamType>::read(byte* b, std::size_t sz)
+    {
+        using std::to_string;
+        using std::string;
+
+        if(bsf + sz > vsz.max_object_size)
+            throw policy_violation("Maximum Object size read at: " + to_string(bsf));
+        stream.read(to_cbyte(b), sz);
+        bsf += sz;
+        return true;
+    }
+
+    template<typename StreamType>
+    void StreamReader<StreamType>::extract_nextValue(Value& vref, size_t value_count, MarkerType type, byte type_mark)
+    {
         decltype(KeyMarker::marker) marker;
         std::string key;
         KeyMarker km;
@@ -119,17 +166,16 @@ namespace timl {
 
             switch (type) {
             case MarkerType::Object:
-                rtn[key] = std::move(value);
+                vref[key] = std::move(value);
                 break;
             case MarkerType::HetroArray:
             case MarkerType::HomoArray:
-                rtn[key].push_back( std::move(value) );
+                vref[key].push_back( std::move(value) );
                 break;
             }
             --value_count;
         }
         validate_container_end(type);
-        return rtn;
     }
 
 
@@ -223,17 +269,17 @@ namespace timl {
     {
         if(isObjectStart(marker))
         {
-            value = extract_count_and_Value();
+            extract_count_and_Value(value);
         }
 
         else if(isHomoArrayStart(marker))
         {
-            value = extract_count_and_HomoArray();
+            extract_count_and_HomoArray(value);
         }
 
         else if(isHetroArrayStart(marker))
         {
-            value = extract_count_and_HetroArray();
+            extract_count_and_HetroArray(value);
         }
     }
 
@@ -242,9 +288,9 @@ namespace timl {
     KeyMarker StreamReader<StreamType>::extract_nextKeyMarker()
     {
         KeyMarker km;
-        stream.read(to_cbyte(&km.len), 1);
-        stream.read(to_cbyte(km.value), std::size_t(km.len));
-        stream.read(to_cbyte(&km.marker), 1);
+        read(km.len);
+        read(km.value, std::size_t(km.len));
+        read(km.marker);
         return km;
     }
 
@@ -252,7 +298,7 @@ namespace timl {
     std::pair<std::size_t, bool> StreamReader<StreamType>::extract_itemCount()
     {
         byte b[4];
-        stream.read(to_cbyte(b), 1);
+        read(b[0]);
         if(isUint8(b[0]))
         {
             stream.read(to_cbyte(b), 1);
@@ -268,38 +314,38 @@ namespace timl {
             stream.read(to_cbyte(b), 4);
             return std::make_pair(fromBigEndian32(b), true);
         }
-        return std::make_pair(0, false);
+        return std::make_pair(std::size_t(b[0]), false);
     }
 
     template<typename StreamType>
-    Value StreamReader<StreamType>::extract_count_and_Value()
+    void StreamReader<StreamType>::extract_count_and_Value(Value& v)
     {
         auto icount = extract_itemCount();
         if(not icount.second)
             throw parsing_exception("Stream does not contain a valid Object count - Count");
 
-        return extract_nextValue(icount.first, MarkerType::Object);
+        return extract_nextValue(v, icount.first, MarkerType::Object);
     }
 
     template<typename StreamType>
-    Value StreamReader<StreamType>::extract_count_and_HomoArray()
+    void StreamReader<StreamType>::extract_count_and_HomoArray(Value& v)
     {
         byte type_mark = static_cast<byte>(extract_Uint8().first);
         auto icount = extract_itemCount();
         if(not icount.second)
             throw parsing_exception("Stream does not contain a valid Object count - Count");
 
-        return extract_nextValue(icount.first, MarkerType::HomoArray, type_mark);
+        return extract_nextValue(v, icount.first, MarkerType::HomoArray, type_mark);
     }
 
     template<typename StreamType>
-    Value StreamReader<StreamType>::extract_count_and_HetroArray()
+    void StreamReader<StreamType>::extract_count_and_HetroArray(Value &v)
     {
         auto icount = extract_itemCount();
         if(not icount.second)
             throw parsing_exception("Stream does not contain a valid Object count - Count");
 
-        return extract_nextValue(icount.first, MarkerType::HetroArray);
+        return extract_nextValue(v, icount.first, MarkerType::HetroArray);
     }
 
     template<typename StreamType>
