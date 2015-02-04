@@ -81,6 +81,7 @@ namespace timl {
         StreamType& stream;
         std::string last_error;
         std::size_t bsf = 0;    //! bytes so far
+        size_t recursive_depth = 0;
         const ValueSizePolicy vsz = {1024, 1024, 1024, 1024, 1024, 1024};
     };
 
@@ -141,6 +142,9 @@ namespace timl {
     template<typename StreamType>
     void StreamReader<StreamType>::extract_nextValue(Value& vref, size_t value_count, MarkerType type, byte type_mark)
     {
+        if(++recursive_depth > vsz.max_value_depth)
+            throw parsing_exception("Maximum Parsing depth Exceeded!");
+
         decltype(KeyMarker::marker) marker;
         std::string key;
         KeyMarker km;
@@ -176,6 +180,7 @@ namespace timl {
             --value_count;
         }
         validate_container_end(type);
+        --recursive_depth;
     }
 
 
