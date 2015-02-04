@@ -322,9 +322,25 @@ namespace timl {
     {
         auto icount = extract_itemCount();
         if(not icount.second)
-            throw parsing_exception("Stream does not contain a valid Object count - Count");
+        {
+            if(isWidthMarker( static_cast<byte>(icount.first)))
+            {
+                auto wsize = extract_itemCount();
+                if(not wsize.second)
+                    throw parsing_exception("Ill formed object!");
 
-        return extract_nextValue(v, icount.first, MarkerType::Object);
+                //! \todo TODO: Add this up
+                //stream.readHint(wsize.first);
+
+                icount = extract_itemCount();
+                if(not icount.second)
+                    icount.first = 0;
+            }
+            else
+                icount.first = 0;
+        }
+
+        extract_nextValue(v, icount.first, MarkerType::Object);
     }
 
     template<typename StreamType>
@@ -333,9 +349,9 @@ namespace timl {
         byte type_mark = static_cast<byte>(extract_Uint8().first);
         auto icount = extract_itemCount();
         if(not icount.second)
-            throw parsing_exception("Stream does not contain a valid Object count - Count");
+            icount.first = 0;
 
-        return extract_nextValue(v, icount.first, MarkerType::HomoArray, type_mark);
+        extract_nextValue(v, icount.first, MarkerType::HomoArray, type_mark);
     }
 
     template<typename StreamType>
@@ -343,9 +359,9 @@ namespace timl {
     {
         auto icount = extract_itemCount();
         if(not icount.second)
-            throw parsing_exception("Stream does not contain a valid Object count - Count");
+            icount.first = 0;
 
-        return extract_nextValue(v, icount.first, MarkerType::HetroArray);
+        extract_nextValue(v, icount.first, MarkerType::HetroArray);
     }
 
     template<typename StreamType>
