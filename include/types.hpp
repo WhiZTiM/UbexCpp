@@ -120,6 +120,9 @@ namespace timl {
     constexpr bool isHomoArrayEnd(byte b)
     { return b == ')';  }
 
+    constexpr bool isWidthMarker(byte b)
+    { return b == 'W';  }
+
     constexpr bool requiresPayload(byte b)
     { return isObjectStart(b) or isString(b) or isBinary(b) or isHomoArrayStart(b) or isHetroArrayStart(b); }
 
