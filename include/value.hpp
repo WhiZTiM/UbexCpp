@@ -55,6 +55,7 @@
 
 namespace timl {
 
+
     /*!
      * \brief The Value class
      * A generalized container object for all value types exchageable by the protocol
@@ -495,6 +496,59 @@ namespace timl {
     void swap(Value&, Value&);
     bool operator == (const Value&, const Value&);
     bool operator != (const Value&, const Value&s);
+
+
+
+
+
+
+
+    /*!
+     * \brief The ValueSizePolicy struct
+     * This is a POD struct that should be used by utility routines to
+     * Parse or construct a Value based on the member values
+     *
+     * It can be assigned using Uniform brace initialization or one after the other.
+     * Clients are encouraged to always use a \b const copy of this class
+     *
+     * \code
+     * ValueSizePolicy vs = {8, 1024, 1024, 4096, 255, 255};
+     *
+     * //Client
+     * class Reader
+     * {
+     *      const ValueSizePolicy vsp; // NOTE the "const"
+     * public:
+     *      Reader(const ValueSizePolicy& vs)
+     *          : vsp(vs) {}
+     *      //Every other code. . . .
+     * };
+     * \endcode
+     *
+     */
+    struct ValueSizePolicy
+    {
+        //! This prevents stack overflow if the parser is implemented using some recursive technique
+        std::size_t max_value_depth;
+
+        //! This dictates the maximum size in bytes a binary type can have
+        std::size_t max_binary_size;
+
+        //! This dictates the maximum size in bytes a string can have
+        std::size_t max_string_size;
+
+        //! This dictates the maximum size in bytes a value type can have.
+        //! \note since a standard UBEX document must be an \e object,
+        //! this setting \b should superceed every other setting
+        std::size_t max_object_size;
+
+        //! This dictates the maximum items Value::size() in an Array
+        std::size_t max_array_items;
+
+        //! This dictates the maximum items Value::size() in an Object
+        std::size_t max_object_items;
+    };
+
 
 }
 #endif // VALUE_H
