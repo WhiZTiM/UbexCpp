@@ -46,7 +46,7 @@ namespace timl {
 
         StreamType& getStream() { return stream; }
 
-        std::size_t getBytesRead() const { return bsf; }
+        std::size_t getBytesRead() const { return bytes_so_far; }
 
         std::string getLastError() const { return last_error; }
 
@@ -80,7 +80,7 @@ namespace timl {
 
         StreamType& stream;
         std::string last_error;
-        std::size_t bsf = 0;    //! bytes so far
+        std::size_t bytes_so_far = 0;    //! bytes so far
         size_t recursive_depth = 0;
         const ValueSizePolicy vsz = {1024, 1024, 1024, 1024, 1024, 1024};
     };
@@ -104,7 +104,8 @@ namespace timl {
 
         try
         {
-            bsf = 0;
+            bytes_so_far = 0;
+            recursive_depth = 0;
             byte b;
             read(b);
             if(not isObjectStart(b))
@@ -132,10 +133,10 @@ namespace timl {
         using std::to_string;
         using std::string;
 
-        if(bsf + sz > vsz.max_object_size)
-            throw policy_violation("Maximum Object size read at: " + to_string(bsf));
+        if(bytes_so_far + sz > vsz.max_object_size)
+            throw policy_violation("Maximum Object size read at: " + to_string(bytes_so_far));
         stream.read(to_cbyte(b), sz);
-        bsf += sz;
+        bytes_so_far += sz;
         return true;
     }
 
