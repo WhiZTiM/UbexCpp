@@ -53,7 +53,7 @@ namespace timl {
         Char    = 'c',
         True    = 't',
         False   = 'f',
-        Bool    = 'a',
+        Bool    = 'A',
 
         Int16   = 'j',
         Int32   = 'k',
@@ -67,8 +67,20 @@ namespace timl {
 
         String  = 's',
         Binary  = 'b',
-        Object,
+
+        Width = 'W',
+
+        Object_Start        = '{',
+        Object_End          = '}',
+        HetroArray_Start    = '[',
+        HetroArray_End      = ']',
+        HomoArray_Start     = '(',
+        HomoArray_End       = ')',
+
         Array,
+        Object,
+        HomoArray,
+        HetroArray
     };
 
     constexpr bool operator == (byte b, Marker m) { return b == static_cast<byte>(m); }
@@ -103,25 +115,25 @@ namespace timl {
     { return isNull(b); }
 
     constexpr bool isObjectStart(byte b)
-    { return b == '{';  }
+    { return b == static_cast<byte>(Marker::Object_Start);  }
 
     constexpr bool isHetroArrayStart(byte b)
-    { return b == '[';  }
+    { return b == static_cast<byte>(Marker::HetroArray_Start);  }
 
     constexpr bool isHomoArrayStart(byte b)
-    { return b == '(';  }
+    { return b == static_cast<byte>(Marker::HomoArray_Start);  }
 
     constexpr bool isObjectEnd(byte b)
-    { return b == '}';  }
+    { return b == static_cast<byte>(Marker::Object_End);  }
 
     constexpr bool isHetroArrayEnd(byte b)
-    { return b == ']';  }
+    { return b == static_cast<byte>(Marker::HetroArray_End);  }
 
     constexpr bool isHomoArrayEnd(byte b)
-    { return b == ')';  }
+    { return b == static_cast<byte>(Marker::HomoArray_End);  }
 
     constexpr bool isWidthMarker(byte b)
-    { return b == 'W';  }
+    { return b == static_cast<byte>(Marker::Width);  }
 
     constexpr bool requiresPayload(byte b)
     { return isObjectStart(b) or isString(b) or isBinary(b) or isHomoArrayStart(b) or isHetroArrayStart(b); }
