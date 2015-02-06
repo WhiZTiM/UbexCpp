@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <cstring>
 #include <endian.h>
+#include <limits>
 #include "types.hpp"
 
 namespace timl{
@@ -25,6 +26,9 @@ namespace timl{
         byte marker;
         byte value[256];
     };
+
+    inline bool in_range(double value, double min, double max)
+    { return (min <= value and value <= max); }
 
 
     uint16_t toBigEndian16(uint16_t val)
