@@ -55,6 +55,7 @@ namespace timl {
         False   = 'f',
         Bool    = 'A',
 
+        Int8    = 'i',
         Int16   = 'j',
         Int32   = 'k',
         Int64   = 'l',
