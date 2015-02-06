@@ -18,6 +18,7 @@
 #include <type_traits>
 #include "include/value.hpp"
 #include "include/stream_reader.hpp"
+#include "include/stream_writer.hpp"
 #include <cppunit/ui/text/TestRunner.h>
 #include <cppunit/extensions/HelperMacros.h>
 #include <cppunit/extensions/TestFactoryRegistry.h>
