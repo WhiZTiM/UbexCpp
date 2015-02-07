@@ -499,7 +499,37 @@ namespace timl {
 
 
 
+    class to_ostream
+    {
+    public:
+        enum Opt : char { pretty, compact };
 
+        to_ostream(const Value& val, Opt option = pretty)
+            : value(val), opt(option)
+        { ppretty = opt == pretty; }
+
+        friend std::ostream& operator << (std::ostream& stream, to_ostream&& tos);
+
+    private:
+        void print_value(std::ostream& os, const Value& v);
+        void print_object(std::ostream& os, const Value& v);
+        void print_array(std::ostream& os, const Value& v);
+
+        inline void push_addendum(char c)
+        { addendum.push_back(c); }
+
+        inline void pop_addendum() {
+            if(not addendum.empty())
+                addendum.pop_back();
+        }
+
+        const Value& value;
+        const Opt opt;
+        std::string addendum;
+        bool ppretty;
+    };
+
+    std::ostream& operator << (std::ostream& stream, to_ostream&& tos);
 
 
 
