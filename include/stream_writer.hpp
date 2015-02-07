@@ -140,7 +140,7 @@ namespace timl {
     inline void StreamWriter<StreamType>::update(const std::pair<size_t, bool>& src, std::pair<size_t, bool>& dest)
     {
         dest.first += src.first;
-        dest.second = dest.second && src.second;
+        dest.second = src.second;
     }
 
     template<typename StreamType>
@@ -177,7 +177,7 @@ namespace timl {
 
         std::size_t key_size = key.size();
         write(static_cast<byte>(key_size));
-        write(to_byte(key.c_str()), key_size);
+        write(reinterpret_cast<const byte*>(key.c_str()), key_size);
 
         return std::make_pair(1 + key_size, true);
     }
@@ -199,7 +199,7 @@ namespace timl {
         const std::size_t size = str.size();
         auto rtn = append_size(size);
         write(Marker::String);
-        write(str.data(), size);
+        write(reinterpret_cast<const byte*>(str.data()), size);
         rtn.first += rtn.first + size;
         return rtn;
     }
@@ -336,7 +336,7 @@ namespace timl {
         if(size != 0)           //empty array optimization... dont append size if zero
             append_size(size);
 
-        for(int i=0; i < size; i++)
+        for(size_t i=0; i < size; i++)
             update(append_value(value[i]), rtn);
 
         write(Marker::HetroArray_End);
