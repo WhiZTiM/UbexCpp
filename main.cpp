@@ -26,6 +26,7 @@
 using namespace std;
 using namespace timl;
 
+void tst();
 
 int main()
 {
@@ -47,10 +48,33 @@ int main()
     std::ifstream ff;
     ff.open("sample1.ubex", ios::binary);
     if(ff.is_open())
-        cout << "Hallelujah!" << endl;
+        cout << "Opened" << endl;
     OstreamReader reader(ff);
     auto val = reader.getNextValue();
     cout <<"\tValue: " << val["int8"].asString() << endl;
+
+    tst();
     return 0;
 }
 
+void tst()
+{
+    Value v1;
+    v1["name"] = "Ibrahim";
+    v1["surname"] = "Onogu";
+    v1["country"] = "NG";
+    v1["faves"] = {453, -34, '@', true, v1, "So damn funny"};
+    v1["arrays"] = {v1, v1, v1};
+
+    cout << to_ostream(v1) << endl;
+
+    std::ofstream file;
+    file.open("tst.ubex", ios::binary);
+
+    StreamWriter<decltype(file)> writer(file);
+    auto result = writer.writeValue(v1);
+
+    if(result.second)
+        cout << "Successfully ";
+    cout << "wrote " << result.first << " bytes" << endl;
+}
