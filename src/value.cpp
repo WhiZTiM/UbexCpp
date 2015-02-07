@@ -852,3 +852,81 @@ bool timl::operator == (const Value& lhs, const Value& rhs)
 bool timl::operator != (const Value& lhs, const Value& rhs)
 { return not timl::operator == (lhs, rhs); }
 
+
+///////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////
+///
+
+///////////////////////////////////////////////////////////
+
+
+std::ostream& timl::operator << (std::ostream& os, to_ostream&& tos)
+{
+    tos.print_value(os, tos.value);
+    return os;
+}
+
+void to_ostream::print_object(std::ostream &os, const Value &v)
+{
+    os << '{' << (ppretty ? "\n" : "");
+    if(ppretty)
+        push_addendum('\t');
+
+    const auto keys = v.keys();
+
+    size_t idx = 0, idxEnd = keys.size();
+    for(const auto& key : keys)
+    {
+        os << addendum << "\"" << key << "\"" << (ppretty ? " : " : ":");;
+        print_value(os, v[key]);
+
+        if(++idx < idxEnd)
+            os << ',';
+        os << (ppretty ? "\n" : "");
+    }
+
+    pop_addendum();
+    os << addendum << '}';
+}
+
+void to_ostream::print_array(std::ostream &os, const Value &v)
+{
+    if(ppretty)
+        push_addendum('\t');
+    os << '[';
+
+    for(size_t i=0; i < v.size(); i++)
+    {
+        print_value(os, v[i]);
+
+        if(i + 1 < v.size())
+            os << (ppretty ? ", " : ",");
+    }
+
+    pop_addendum();
+    os << addendum << ']';
+}
+
+void to_ostream::print_value(std::ostream &os, const Value &v)
+{
+    if(v.isNull())
+        os << "null";
+    else if(v.isBool())
+        os << (v ? "true" : "false");
+    else if(v.isChar())
+        os << "\"" << static_cast<char>(v) << "\"";
+    else if(v.isSignedInteger())
+        os << static_cast<long long>(v);
+    else if(v.isUnsignedInteger())
+        os << static_cast<unsigned long long>(v);
+    else if(v.isFloat())
+        os << static_cast<double>(v);
+    else if(v.isString())
+        os << "\"" << static_cast<std::string>(v) << "\"";
+    else if(v.isBinary())
+        os << "BINARY DATA (" << static_cast<const Value::BinaryType&>(v).size() << " bytes)";
+    else if(v.isArray())
+        print_array(os, v);
+    else if(v.isObject())
+        print_object(os, v);
+}
