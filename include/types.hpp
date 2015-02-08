@@ -90,6 +90,7 @@ namespace timl {
     constexpr bool isChar(byte b) { return b == Marker::Char; }
     constexpr bool isTrue(byte b) { return b == Marker::True; }
     constexpr bool isFalse(byte b) { return b == Marker::False; }
+    constexpr bool isInt8(byte b) { return b == Marker::Int8; }
     constexpr bool isInt16(byte b) { return b == Marker::Int16; }
     constexpr bool isInt32(byte b) { return b == Marker::Int32; }
     constexpr bool isInt64(byte b) { return b == Marker::Int64; }
