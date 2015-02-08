@@ -216,7 +216,7 @@ namespace timl {
         else if(isInt8(marker))
         {
             int8_t extracted(extract_Uint8().first);
-            unsigned long long val(extracted);
+            long long val(extracted);
             value = val;
         }
         else if(isInt16(marker))
