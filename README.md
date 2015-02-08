@@ -108,7 +108,7 @@ Pretty Printing.... easy:
 Value value;
 value["name"] = "Timothy"
 value["country"] = "Nigeria";
-value["favorites'] = { 34.351, -253, '@', value["country"], 34, value};
+value["favorites"] = { 34.351, -253, '@', value["country"], 34, value};
 
 std::cout << to_ostream(value) << std::endl;
 ```
