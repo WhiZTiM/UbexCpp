@@ -160,6 +160,7 @@ namespace timl {
                 break;
             case MarkerType::HetroArray:
                 marker = extract_Uint8().first;
+                break;
             case MarkerType::HomoArray:
                 marker = type_mark;
             default:
@@ -209,6 +210,12 @@ namespace timl {
         else if(isUint8(marker))
         {
             uint8_t extracted(extract_Uint8().first);
+            unsigned long long val(extracted);
+            value = val;
+        }
+        else if(isInt8(marker))
+        {
+            int8_t extracted(extract_Uint8().first);
             unsigned long long val(extracted);
             value = val;
         }
@@ -307,17 +314,17 @@ namespace timl {
         read(b[0]);
         if(isUint8(b[0]))
         {
-            stream.read(to_cbyte(b), 1);
+            read(b, 1);
             return std::make_pair(fromBigEndian8(b), true);
         }
         if(isUint16(b[0]))
         {
-            stream.read(to_cbyte(b), 2);
+            read(b, 2);
             return std::make_pair(fromBigEndian16(b), true);
         }
         if(isUint32(b[0]))
         {
-            stream.read(to_cbyte(b), 4);
+            read(b, 4);
             return std::make_pair(fromBigEndian32(b), true);
         }
         return std::make_pair(std::size_t(b[0]), false);
@@ -336,7 +343,7 @@ namespace timl {
                     throw parsing_exception("Ill formed object!");
 
                 //! \todo TODO: Add this up
-                //stream.readHint(wsize.first);
+                //readHint(wsize.first);
 
                 icount = extract_itemCount();
                 if(not icount.second)
@@ -374,7 +381,7 @@ namespace timl {
     void StreamReader<StreamType>::validate_container_end(MarkerType type)
     {
         byte b;
-        stream.read(to_cbyte(&b), 1);
+        read(b);
         std::cout << "END-MARKER: " << b << std::endl;
         switch (type) {
         case MarkerType::Object:
@@ -399,7 +406,7 @@ namespace timl {
     std::pair<int16_t, bool> StreamReader<StreamType>::extract_Int16()
     {
         byte b[2];
-        stream.read(to_cbyte(b), 2);
+        read(b, 2);
         return std::make_pair(fromBigEndian16(b), true);
     }
 
@@ -407,7 +414,7 @@ namespace timl {
     std::pair<int32_t, bool> StreamReader<StreamType>::extract_Int32()
     {
         byte b[4];
-        stream.read(to_cbyte(b), 4);
+        read(b, 4);
         return std::make_pair(fromBigEndian32(b), true);
     }
 
@@ -415,7 +422,7 @@ namespace timl {
     std::pair<int64_t, bool> StreamReader<StreamType>::extract_Int64()
     {
         byte b[8];
-        stream.read(to_cbyte(b), 8);
+        read(b, 8);
         return std::make_pair(fromBigEndian64(b), true);
     }
 
@@ -423,7 +430,7 @@ namespace timl {
     std::pair<uint16_t, bool> StreamReader<StreamType>::extract_Uint16()
     {
         byte b[2];
-        stream.read(to_cbyte(b), 2);
+        read(b, 2);
         return std::make_pair(fromBigEndian16(b), true);
     }
 
@@ -431,7 +438,7 @@ namespace timl {
     std::pair<uint32_t, bool> StreamReader<StreamType>::extract_Uint32()
     {
         byte b[4];
-        stream.read(to_cbyte(b), 4);
+        read(b, 4);
         return std::make_pair(fromBigEndian32(b), true);
     }
 
@@ -439,7 +446,7 @@ namespace timl {
     std::pair<uint64_t, bool> StreamReader<StreamType>::extract_Uint64()
     {
         byte b[8];
-        stream.read(to_cbyte(b), 8);
+        read(b, 8);
         return std::make_pair(fromBigEndian64(b), true);
     }
 
@@ -447,7 +454,7 @@ namespace timl {
     std::pair<int8_t, bool> StreamReader<StreamType>::extract_Uint8()
     {
         byte b;
-        stream.read(to_cbyte(&b), 1);
+        read(b);
         return std::make_pair(fromBigEndian8(&b), true);
     }
 
@@ -455,7 +462,7 @@ namespace timl {
     std::pair<float, bool> StreamReader<StreamType>::extract_Float32()
     {
         byte b[4];
-        stream.read(to_cbyte(b), 4);
+        read(b, 4);
         return std::make_pair(fromBigEndianFloat32(b), true);
     }
 
@@ -463,7 +470,7 @@ namespace timl {
     std::pair<double, bool> StreamReader<StreamType>::extract_Float64()
     {
         byte b[8];
-        stream.read(to_cbyte(b), 8);
+        read(b, 8);
         return std::make_pair(fromBigEndianFloat64(b), true);
     }
 
@@ -476,7 +483,7 @@ namespace timl {
 
         //byte* b = new byte[icount.first];
         std::unique_ptr<byte[]> b(new byte[icount.first]);
-        stream.read(to_cbyte(b.get()), icount.first);
+        read(b.get(), icount.first);
 
         std::string rtn(to_cbyte(b.get()), to_cbyte(b.get()) + icount.first);
         return std::make_pair(rtn, true);
@@ -490,7 +497,7 @@ namespace timl {
             throw parsing_exception("Invalid count token encounted!");
 
         std::unique_ptr<byte[]> b(new byte[icount.first]);
-        stream.read(to_cbyte(b.get()), icount.first);
+        read(b.get(), icount.first);
 
         Value::BinaryType rtn(to_cbyte(b.get()), to_cbyte(b.get()) + icount.first);
         return std::make_pair(rtn, true);
