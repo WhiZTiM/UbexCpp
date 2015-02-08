@@ -76,10 +76,12 @@ namespace timl {
         auto keys = value.keys();
         std::pair<size_t, bool> rtn(1, false);
         write(Marker::Object_Start);
+        update(append_size(keys.size()), rtn);
 
         for(const auto& key : keys)
         {
             decltype(rtn) k(0, false);
+            update(k, rtn);
             k = append_key(key);
             update(k, rtn);
             k = append_value(value[key]);
@@ -185,8 +187,8 @@ namespace timl {
     template<typename StreamType>
     std::pair<size_t, bool> StreamWriter<StreamType>::append_binary(const Value::BinaryType& bin)
     {
-        auto rtn = append_size(bin.size());
         write(Marker::Binary);
+        auto rtn = append_size(bin.size());
         write(bin.data(), bin.size());
         rtn.first += rtn.first + bin.size();
         return rtn;
@@ -197,8 +199,8 @@ namespace timl {
     std::pair<size_t, bool> StreamWriter<StreamType>::append_string(const std::string& str)
     {
         const std::size_t size = str.size();
-        auto rtn = append_size(size);
         write(Marker::String);
+        auto rtn = append_size(size);
         write(reinterpret_cast<const byte*>(str.data()), size);
         rtn.first += rtn.first + size;
         return rtn;
