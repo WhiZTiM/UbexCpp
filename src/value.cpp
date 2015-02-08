@@ -904,7 +904,7 @@ void to_ostream::print_array(std::ostream &os, const Value &v)
     }
 
     pop_addendum();
-    os << addendum << ']';
+    os << ']';
 }
 
 void to_ostream::print_value(std::ostream &os, const Value &v)
