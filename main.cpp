@@ -27,6 +27,7 @@ using namespace std;
 using namespace timl;
 
 void tst();
+void tst2();
 
 int main()
 {
@@ -45,6 +46,7 @@ int main()
     extern int weird_cppunit_extern_bug_value_map_and_array_test;   weird_cppunit_extern_bug_value_map_and_array_test = 1;
     extern int weird_cppunit_extern_bug_value_iterator_test;        weird_cppunit_extern_bug_value_iterator_test = 1;
 
+    /*
     std::ifstream ff;
     ff.open("sample1.ubex", ios::binary);
     if(ff.is_open())
@@ -52,10 +54,12 @@ int main()
     OstreamReader reader(ff);
     auto val = reader.getNextValue();
     cout <<"\tValue: " << val["int8"].asString() << endl;
-
-    tst();
+    */
+    tst2();
     return 0;
 }
+
+
 
 void tst()
 {
@@ -66,7 +70,7 @@ void tst()
     v1["faves"] = {453, -34, '@', true, v1, "So damn funny"};
     v1["arrays"] = {v1, v1, v1};
 
-    cout << to_ostream(v1) << endl;
+    //cout << to_ostream(v1) << endl;
 
     std::ofstream file;
     file.open("tst.ubex", ios::binary);
@@ -77,4 +81,20 @@ void tst()
     if(result.second)
         cout << "Successfully ";
     cout << "wrote " << result.first << " bytes" << endl;
+}
+
+void tst2()
+{
+    Value v2;
+    std::ifstream file;
+    file.open("tst.ubex", ios::binary);
+
+    StreamReader<decltype(file)> reader(file);
+    if(reader.getNextValue(v2))
+    {
+        cout << "Successfully READ:::\n-----------\n";
+    }
+    cout << reader.getBytesRead() << " bytes read\nERRORS: " << reader.getLastError() << endl << endl;
+    cout << to_ostream(v2) << endl;
+
 }
