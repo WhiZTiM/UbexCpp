@@ -3,7 +3,7 @@
 
 #### This is clean C++14 implementation of the Uncomplicated Binary Exchange Format (UBEXF) and Value semmantics
 
-#### How?
+#### Brief
 The UBEXF is a simpler variant of UBJSON (A binary version of JSON). UBEXF carries simplicity of representing any data in JSON style and the efficiency of binary compactness. However it does not strive a 1:1 compatibility with JSON like UBJSON does. Please See Format Spec for details
 
 #### About This Library
@@ -32,7 +32,7 @@ std::cout << v2.asInt() << std::endl;   //truncate to Integer....
 ```
 If you are familiar with JsonCpp, using this library shouldn't be a problem :-).
 
-
+----------------------------------------------
 
 Key-Value pairs or Maps? ...perfect
 ```C++
@@ -44,7 +44,7 @@ m2["location"]["latitude"]["relative"] = 34.2523; //creates the maps on the fly.
 
 m1 == m2;   //Compare an Value type;
 ```
-
+----------------------------------------------
 
 
 Arrays? ...No problems
@@ -59,7 +59,7 @@ for(auto val : array)
 if(array.contains(2015))
   array.remove(2015)
 ```
-
+----------------------------------------------
 
 
 Value also has binary types:
@@ -68,7 +68,7 @@ using namespace timl;
 using Binary = Value::BinaryType;   //Actually, an alias for std::vector<unsigned char>
 Value binary = Binary({0xF3, 0x33, 0x76, 0xAA, 0x23});
 ```
-
+----------------------------------------------
 
 
 #### Stream Operations
@@ -83,7 +83,7 @@ Reading from a Stream is very simple.
   //or
   StreamReader<std::ifstream> reader(input); ///your choice :-)
 ```
-
+----------------------------------------------
 
 
 Writing to a Stream is likewise very simple.
@@ -101,7 +101,7 @@ Writing to a Stream is likewise very simple.
   if(result.second)
     std::cout << "Successfully wrote: " << result.first << " bytes" << std::endl;
 ```
-
+----------------------------------------------
 
 Pretty Printing.... easy:
 ```C++
@@ -112,9 +112,12 @@ value["favorites"] = { 34.351, -253, '@', value["country"], 34, value};
 
 std::cout << to_ostream(value) << std::endl;
 ```
+----------------------------------------------
 
+----------------------------------------------
 
-
-
-Written and authored by Ibrahim Timothy Onogu.
+Written and authored by **Ibrahim Timothy Onogu.**
 Please drop a comment.
+
+http://ng.linkedin.com/pub/ibrahim-timothy-onogu/96/174/111
+

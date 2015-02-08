@@ -385,7 +385,6 @@ namespace timl {
     {
         byte b;
         read(b);
-        std::cout << "END-MARKER: " << b << std::endl;
         switch (type) {
         case MarkerType::Object:
             if(not isObjectEnd(b))

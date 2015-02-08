@@ -47,6 +47,7 @@ int main()
     extern int weird_cppunit_extern_bug_value_iterator_test;        weird_cppunit_extern_bug_value_iterator_test = 1;
 
     tst();
+    tst2();
     return 0;
 }
 
