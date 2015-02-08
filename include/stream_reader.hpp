@@ -220,7 +220,7 @@ namespace timl {
             value = val;
         }
         else if(isInt16(marker))
-        {s
+        {
             int16_t extracted(extract_Int16().first);
             int val(extracted);
             value = val;

@@ -81,7 +81,6 @@ namespace timl {
         for(const auto& key : keys)
         {
             decltype(rtn) k(0, false);
-            update(k, rtn);
             k = append_key(key);
             update(k, rtn);
             k = append_value(value[key]);
@@ -190,7 +189,7 @@ namespace timl {
         write(Marker::Binary);
         auto rtn = append_size(bin.size());
         write(bin.data(), bin.size());
-        rtn.first += rtn.first + bin.size() + 1;
+        rtn.first += bin.size() + 1;
         return rtn;
     }
 
@@ -202,7 +201,7 @@ namespace timl {
         write(Marker::String);
         auto rtn = append_size(size);
         write(reinterpret_cast<const byte*>(str.data()), size);
-        rtn.first += rtn.first + size + 1;
+        rtn.first += size + 1;
         return rtn;
     }
 
