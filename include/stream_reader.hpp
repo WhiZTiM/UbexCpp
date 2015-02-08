@@ -176,7 +176,7 @@ namespace timl {
                 break;
             case MarkerType::HetroArray:
             case MarkerType::HomoArray:
-                vref[key].push_back( std::move(value) );
+                vref.push_back( std::move(value) );
                 break;
             }
             --value_count;
