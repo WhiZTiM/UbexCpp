@@ -117,10 +117,20 @@ namespace timl{
     }
 
     float fromBigEndianFloat32(byte* b)
-    { return static_cast<float>(fromBigEndian32(b)); }
+    {
+        float rtn;
+        const uint32_t ans = fromBigEndian32(b);
+        std::memcpy(&rtn, &ans, 4);
+        return rtn;
+    }
 
     double fromBigEndianFloat64(byte* b)
-    { return static_cast<double>(fromBigEndian64(b)); }
+    {
+        double rtn;
+        const int64_t ans = fromBigEndian64(b);
+        std::memcpy(&rtn, &ans, 8);
+        return rtn;
+    }
 
 }
 
