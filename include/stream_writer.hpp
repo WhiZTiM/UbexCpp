@@ -167,7 +167,7 @@ namespace timl {
     {
         write(static_cast<byte>(Marker::Char));
         write(static_cast<byte>(c));
-        return std::make_pair(1, true);
+        return std::make_pair(2, true);
     }
 
     template<typename StreamType>
@@ -190,7 +190,7 @@ namespace timl {
         write(Marker::Binary);
         auto rtn = append_size(bin.size());
         write(bin.data(), bin.size());
-        rtn.first += rtn.first + bin.size();
+        rtn.first += rtn.first + bin.size() + 1;
         return rtn;
     }
 
@@ -202,7 +202,7 @@ namespace timl {
         write(Marker::String);
         auto rtn = append_size(size);
         write(reinterpret_cast<const byte*>(str.data()), size);
-        rtn.first += rtn.first + size;
+        rtn.first += rtn.first + size + 1;
         return rtn;
     }
 
@@ -230,7 +230,8 @@ namespace timl {
         }
         else if(in_range(val, Uint16::lowest(), Uint16::max()))
         {
-            const uint16_t val = toBigEndian16(static_cast<uint16_t>(val));
+            const uint16_t ct = static_cast<uint16_t>(val);
+            const uint16_t val = toBigEndian16(ct);
             std::memcpy(b, &val, 2);
             write(Marker::Uint16);
             write(b, 2);
@@ -238,7 +239,8 @@ namespace timl {
         }
         else if(in_range(val, Uint32::lowest(), Uint32::max()))
         {
-            const uint32_t val = toBigEndian32(static_cast<uint32_t>(val));
+            const uint32_t ct = static_cast<uint32_t>(val);
+            const uint32_t val = toBigEndian32(ct);
             std::memcpy(b, &val, 4);
             write(Marker::Uint32);
             write(b, 4);
@@ -246,7 +248,8 @@ namespace timl {
         }
         else if(evaluate_uint64 and in_range(val, Uint64::lowest(), Uint64::max()))
         {
-            const uint64_t val = toBigEndian64(static_cast<uint64_t>(val));
+            const uint64_t ct = static_cast<uint64_t>(val);
+            const uint64_t val = toBigEndian64(ct);
             std::memcpy(b, &val, 8);
             write(Marker::Uint64);
             write(b, 8);
@@ -274,7 +277,8 @@ namespace timl {
         }
         else if(in_range(val, Int16::lowest(), Int16::max()))
         {
-            const uint16_t val = toBigEndian16(static_cast<uint16_t>(val));
+            const uint16_t tit = static_cast<uint16_t>(val);
+            const uint16_t val = toBigEndian16(tit);
             std::memcpy(b, &val, 2);
             write(Marker::Int16);
             write(b, 2);
@@ -282,7 +286,8 @@ namespace timl {
         }
         else if(in_range(val, Int32::lowest(), Int32::max()))
         {
-            const uint32_t val = toBigEndian32(static_cast<uint32_t>(val));
+            const uint32_t tit = static_cast<uint32_t>(val);
+            const uint32_t val = toBigEndian32(tit);
             std::memcpy(b, &val, 4);
             write(Marker::Int32);
             write(b, 4);
@@ -290,7 +295,8 @@ namespace timl {
         }
         else if(in_range(val, Int64::lowest(), Int64::max()))
         {
-            const uint64_t val = toBigEndian64(static_cast<uint64_t>(val));
+            const uint64_t tit = static_cast<uint64_t>(val);
+            const uint64_t val = toBigEndian64(tit);
             std::memcpy(b, &val, 8);
             write(Marker::Int64);
             write(b, 8);
@@ -340,7 +346,7 @@ namespace timl {
         write(Marker::HetroArray_Start);
 
         if(size != 0)           //empty array optimization... dont append size if zero
-            append_size(size);
+            update(append_size(size), rtn);
 
         for(size_t i=0; i < size; i++)
             update(append_value(value[i]), rtn);
