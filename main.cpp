@@ -46,7 +46,7 @@ int main()
     extern int weird_cppunit_extern_bug_value_map_and_array_test;   weird_cppunit_extern_bug_value_map_and_array_test = 1;
     extern int weird_cppunit_extern_bug_value_iterator_test;        weird_cppunit_extern_bug_value_iterator_test = 1;
 
-    tst2();
+    tst();
     return 0;
 }
 
@@ -59,12 +59,12 @@ void tst()
     v1["surname"] = "Onogu";
     v1["country"] = "NG";
     v1["faves"] = {453, -34, '@', true, -9.80665, "So damn funny"};
-    //v1["arrays"] = {v1, v1, v1};
+    v1["arrays"] = {v1, v1, v1};
 
     cout << to_ostream(v1) << endl;
 
     std::ofstream file;
-    file.open("tst2.ubex", ios::binary);
+    file.open("tst.ubex", ios::binary);
 
     StreamWriter<decltype(file)> writer(file);
     auto result = writer.writeValue(v1);
@@ -78,7 +78,7 @@ void tst2()
 {
     Value v2;
     std::ifstream file;
-    file.open("tst2.ubex", ios::binary);
+    file.open("tst.ubex", ios::binary);
 
     StreamReader<decltype(file)> reader(file);
     if(reader.getNextValue(v2))

@@ -25,6 +25,9 @@ namespace timl {
 
     enum class MarkerType { Object, HetroArray, HomoArray };
 
+    constexpr ValueSizePolicy defaultStreamReaderPolicy()
+    { return {32, 1024*1024*64, 1024*1024*8, 1024*1024*65, 1024, 1024}; }
+
     template<typename StreamType>
     class StreamReader
     {
@@ -38,7 +41,7 @@ namespace timl {
         };
 
 
-        StreamReader(StreamType& Stream);
+        StreamReader(StreamType& Stream, ValueSizePolicy policy = defaultStreamReaderPolicy());
 
         Value getNextValue();
 
@@ -82,12 +85,12 @@ namespace timl {
         std::string last_error;
         std::size_t bytes_so_far = 0;    //! bytes so far
         size_t recursive_depth = 0;
-        const ValueSizePolicy vsz = {1024, 1024, 1024, 1024, 1024, 1024};
+        const ValueSizePolicy vsz;
     };
 
     template<typename StreamType>
-    StreamReader<StreamType>::StreamReader(StreamType& Stream)
-        : stream(Stream)
+    StreamReader<StreamType>::StreamReader(StreamType& Stream, ValueSizePolicy policy)
+        : stream(Stream), vsz(policy)
     {}
 
 
