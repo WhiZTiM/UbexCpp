@@ -46,15 +46,6 @@ int main()
     extern int weird_cppunit_extern_bug_value_map_and_array_test;   weird_cppunit_extern_bug_value_map_and_array_test = 1;
     extern int weird_cppunit_extern_bug_value_iterator_test;        weird_cppunit_extern_bug_value_iterator_test = 1;
 
-    /*
-    std::ifstream ff;
-    ff.open("sample1.ubex", ios::binary);
-    if(ff.is_open())
-        cout << "Opened" << endl;
-    OstreamReader reader(ff);
-    auto val = reader.getNextValue();
-    cout <<"\tValue: " << val["int8"].asString() << endl;
-    */
     tst2();
     return 0;
 }
@@ -70,7 +61,7 @@ void tst()
     v1["faves"] = {453, -34, '@', true, v1, "So damn funny"};
     v1["arrays"] = {v1, v1, v1};
 
-    //cout << to_ostream(v1) << endl;
+    cout << to_ostream(v1) << endl;
 
     std::ofstream file;
     file.open("tst.ubex", ios::binary);
