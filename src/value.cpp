@@ -388,9 +388,9 @@ long long Value::asInt64() const noexcept
     if(isSignedInteger())
         return value.SignedInt;
     if(isUnsignedInteger())
-        return in_range(value.UnsignedInt, limit::min(), limit::max()) ? value.UnsignedInt : 0;
+        return in_range(value.UnsignedInt, limit::lowest(), limit::max()) ? value.UnsignedInt : 0;
     if(isFloat())
-        return in_range(value.Float, limit::min(), limit::max()) ? value.Float : 0;
+        return in_range(value.Float, limit::lowest(), limit::max()) ? value.Float : 0;
 
     if(isChar())
         return static_cast<long long>(value.Char);
@@ -414,9 +414,9 @@ unsigned long long Value::asUint64() const noexcept
     if(isUnsignedInteger())
         return value.UnsignedInt;
     if(isSignedInteger())
-        return in_range(value.SignedInt, limit::min(), limit::max()) ? value.SignedInt : 0;
+        return in_range(value.SignedInt, limit::lowest(), limit::max()) ? value.SignedInt : 0;
     if(isFloat())
-        return in_range(value.Float, limit::min(), limit::max()) ? value.Float : 0;
+        return in_range(value.Float, limit::lowest(), limit::max()) ? value.Float : 0;
     if(isChar())
         return static_cast<unsigned long long>(value.Char);
     if(isBool())
@@ -469,13 +469,13 @@ bool Value::asBool() const noexcept
 int Value::asInt() const noexcept
 {
     using limit = std::numeric_limits<int>;
-    return in_range(asInt64(), limit::min(), limit::max()) ? asInt64() : 0;
+    return in_range(asInt64(), limit::lowest(), limit::max()) ? asInt64() : 0;
 }
 
 unsigned int Value::asUint() const noexcept
 {
     using limit = std::numeric_limits<unsigned int>;
-    return in_range(asUint64(), limit::min(), limit::max()) ? asUint64() : 0;
+    return in_range(asUint64(), limit::lowest(), limit::max()) ? asUint64() : 0;
 }
 
 std::string Value::asString() const noexcept
