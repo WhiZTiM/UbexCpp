@@ -222,13 +222,13 @@ namespace timl {
 
         byte b[8];
         std::pair<size_t, bool> rtn(0, false);
-        if(in_range(val, Uint8::min(), Uint8::max()))
+        if(in_range(val, Uint8::lowest(), Uint8::max()))
         {
             write(Marker::Uint8);
             write(static_cast<byte>(val));
             rtn = std::make_pair(2, true);
         }
-        else if(in_range(val, Uint16::min(), Uint16::max()))
+        else if(in_range(val, Uint16::lowest(), Uint16::max()))
         {
             const uint16_t val = toBigEndian16(static_cast<uint16_t>(val));
             std::memcpy(b, &val, 2);
@@ -236,7 +236,7 @@ namespace timl {
             write(b, 2);
             rtn = std::make_pair(3, true);
         }
-        else if(in_range(val, Uint32::min(), Uint32::max()))
+        else if(in_range(val, Uint32::lowest(), Uint32::max()))
         {
             const uint32_t val = toBigEndian32(static_cast<uint32_t>(val));
             std::memcpy(b, &val, 4);
@@ -244,7 +244,7 @@ namespace timl {
             write(b, 4);
             rtn = std::make_pair(5, true);
         }
-        else if(evaluate_uint64 and in_range(val, Uint64::min(), Uint64::max()))
+        else if(evaluate_uint64 and in_range(val, Uint64::lowest(), Uint64::max()))
         {
             const uint64_t val = toBigEndian64(static_cast<uint64_t>(val));
             std::memcpy(b, &val, 8);
@@ -266,13 +266,13 @@ namespace timl {
 
         byte b[8];
         std::pair<size_t, bool> rtn(0, false);
-        if(in_range(val, Int8::min(), Int8::max()))
+        if(in_range(val, Int8::lowest(), Int8::max()))
         {
             write(Marker::Int8);
             write(static_cast<byte>(val));
             rtn = std::make_pair(2, true);
         }
-        else if(in_range(val, Int16::min(), Int16::max()))
+        else if(in_range(val, Int16::lowest(), Int16::max()))
         {
             const uint16_t val = toBigEndian16(static_cast<uint16_t>(val));
             std::memcpy(b, &val, 2);
@@ -280,7 +280,7 @@ namespace timl {
             write(b, 2);
             rtn = std::make_pair(3, true);
         }
-        else if(in_range(val, Int32::min(), Int32::max()))
+        else if(in_range(val, Int32::lowest(), Int32::max()))
         {
             const uint32_t val = toBigEndian32(static_cast<uint32_t>(val));
             std::memcpy(b, &val, 4);
@@ -288,7 +288,7 @@ namespace timl {
             write(b, 4);
             rtn = std::make_pair(5, true);
         }
-        else if(in_range(val, Int64::min(), Int64::max()))
+        else if(in_range(val, Int64::lowest(), Int64::max()))
         {
             const uint64_t val = toBigEndian64(static_cast<uint64_t>(val));
             std::memcpy(b, &val, 8);
@@ -308,15 +308,19 @@ namespace timl {
 
         byte b[8];
         std::pair<size_t, bool> rtn(0, false);
-        if(in_range(val, Float32::min(), Float32::max()))
+        if(in_range(val, Float32::lowest(), Float32::max()))
         {
-            const uint32_t val = toBigEndianFloat32(static_cast<float>(val));
+            // g++ 4.9.1 doesn't work well here
+            //const uint32_t val = toBigEndianFloat32(static_cast<float>(val));
+
+            float temp = static_cast<float>(val);           //Walkaround
+            const uint32_t val = toBigEndianFloat32(temp);  //Walkaround
             std::memcpy(b, &val, 4);
             write(Marker::Float32);
             write(b, 4);
             rtn = std::make_pair(5, true);
         }
-        else if(in_range(val, Float64::min(), Float64::max()))
+        else if(in_range(val, Float64::lowest(), Float64::max()))
         {
             const uint64_t val = toBigEndianFloat64(val);
             std::memcpy(b, &val, 8);
