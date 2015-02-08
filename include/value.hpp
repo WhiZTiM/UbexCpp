@@ -499,6 +499,38 @@ namespace timl {
 
 
 
+    /*!
+     * \brief The to_ostream class is responsible for pretty printing Value in JSON format
+     *
+     * You can either print it in compact mode, or pretty. Example
+     * \code
+     * Value v("faves", {"Nigeria", 3.1416, '@'});
+     * v["region"] = "Africa";
+     *
+     * std::cout << to_ostream(v) << std::endl; //prints
+     * // {
+     * //      "faves" : [ "Nigeria", 3.1416, "@" ],
+     * //      "region" : "Africa"
+     * // }
+     *
+     * std::cout << to_ostream(v, to_ostream::compact) << std::endl; //prints
+     * // {"faves":["Nigeria",3.1416,"@"],"region":"Africa"}
+     *
+     * \endcode
+     * NOTE. to_ostream(Value) is same as to_ostream(Value, to_ostream::pretty)
+     *
+     * It can only used in rvalue context. Example
+     * \code
+     * Value v;
+     * // . . .fill with whatever
+     * std::cout << to_ostream(v) << std::endl;
+     *
+     * //Wrong way to use
+     * to_ostream tos(v)
+     * std::cout << tos << std::endl;   //Shouldn't be used this way
+     * \endcode
+     *
+     */
     class to_ostream
     {
     public:
@@ -556,7 +588,7 @@ namespace timl {
      * \endcode
      *
      */
-    struct ValueSizePolicy
+    struct ValueSizePolicy      //NOTE: Please never reorder the members, because, brace initializer{}
     {
         //! This prevents stack overflow if the parser is implemented using some recursive technique
         std::size_t max_value_depth;
