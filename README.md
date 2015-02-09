@@ -3,7 +3,7 @@
 
 #### This is clean C++14 implementation of the Uncomplicated Binary Exchange Format (UBEXF) and Value semmantics
 
-#### Brief
+#### About
 The UBEXF is a simpler variant of UBJSON (A binary version of JSON). UBEXF carries simplicity of representing any data in JSON style and the efficiency of binary compactness. However it does not strive a 1:1 compatibility with JSON like UBJSON does. Please See Format Spec for details
 
 #### About This Library
@@ -17,20 +17,38 @@ The Value type is an intuitive union type that is used to hold any UBEXF type, w
 ```C++
 using namespace timl;
 Value v1, v2;
-v1 = 34535;
-v1 = "I so much love C++14";
+
+v1 = 34535;     //Assign to integral types
+v1 = "I so much love C++14";    //std::string constructable
 v2 = v1;
 
-std::string s1 = std::move(v1);
+std::string s1 = std::move(v1); //move string
+//very viable for large amounts of strings
 
-auto b = s1 == static_cast<std::string>(v2);
+
+auto b = static_cast<std::string>(v2)   //safely cast to std::string or throw;
 v2 = -2342.2525236;
 
-std::string s2 = v2.asString;   //Value::asString() exception safe unconditional cast
-std::cout << v2.asInt() << std::endl;   //truncate to Integer....
+std::string s2 = v2.asString();   //Value::asString() exception safe unconditional cast
+std::cout << v2.asInt() << std::endl;   //unconditionally cast to int (noexcept)....
 
 ```
 If you are familiar with JsonCpp, using this library shouldn't be a problem :-).
+
+----------------------------------------------
+
+Modifiying Values in place? ...Yes
+```C++
+using namespace timl;
+Value val = "Are we there yet Mr. Donald Knuth?";
+std::string& ref1 = val;
+auto& ref2 = static_cast<std::string&>(val);
+
+//To lower
+ref1[0] = std::tolower(ref2[0]);
+
+auto boool = (ref1 == ref2) and (ref1 == val); //Will be true
+```
 
 ----------------------------------------------
 
