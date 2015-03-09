@@ -266,6 +266,16 @@ namespace timl {
         using Int32 = std::numeric_limits<int32_t>;
         using Int64 = std::numeric_limits<int64_t>;
 
+        //An optimization... val could be a positive integer
+        //  if so, chances are it may be more efficeint to append as unsignedInt()..
+        //Example: if val = 226
+        //  this function will require int16_t to represent, while
+        //  its sister function (unsigned) can fit it into int8_t
+        if(val >= 0)
+            return append_unsignedInt(val);
+        //End Optimization
+
+
         byte b[8];
         std::pair<size_t, bool> rtn(0, false);
         if(in_range(val, Int8::lowest(), Int8::max()))
@@ -313,22 +323,22 @@ namespace timl {
 
         byte b[8];
         std::pair<size_t, bool> rtn(0, false);
-        if(in_range(val, Float32::lowest(), Float32::max()))
+        if(in_range(val, Float32::lowest(), Float32::max()) and static_cast<float>(val) == val)
         {
             // g++ 4.9.1 doesn't work well here
             //const uint32_t val = toBigEndianFloat32(static_cast<float>(val));
 
-            float temp = static_cast<float>(val);           //Walkaround
-            const uint32_t val = toBigEndianFloat32(temp);  //Walkaround
-            std::memcpy(b, &val, 4);
+            float temp = static_cast<float>(val);           //Workaround
+            const uint32_t val_i = toBigEndianFloat32(temp);  //Workaround
+            std::memcpy(b, &val_i, 4);
             write(Marker::Float32);
             write(b, 4);
             rtn = std::make_pair(5, true);
         }
         else if(in_range(val, Float64::lowest(), Float64::max()))
         {
-            const uint64_t val = toBigEndianFloat64(val);
-            std::memcpy(b, &val, 8);
+            const uint64_t val_i = toBigEndianFloat64(val);
+            std::memcpy(b, &val_i, 8);
             write(Marker::Float64);
             write(b, 8);
             rtn = std::make_pair(9, true);
