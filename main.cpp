@@ -26,9 +26,10 @@
 using namespace std;
 using namespace timl;
 
-void tst();
-void tst2();
+Value tst();
+Value tst2();
 
+extern void random_use_01();
 int main()
 {
     using namespace std::chrono;
@@ -46,14 +47,20 @@ int main()
     extern int weird_cppunit_extern_bug_value_map_and_array_test;   weird_cppunit_extern_bug_value_map_and_array_test = 1;
     extern int weird_cppunit_extern_bug_value_iterator_test;        weird_cppunit_extern_bug_value_iterator_test = 1;
 
-    tst();
-    tst2();
+    auto v1 = tst();
+    auto v2 = tst2();
+
+    cout << boolalpha << "Are they the same?: " << (v1 == v2) << endl;
+    cout << "First:::\n" << to_ostream(v1) << endl << endl;
+    cout << "Second:::\n" << to_ostream(v2) << endl;
+
+    random_use_01();
     return 0;
 }
 
 
 
-void tst()
+Value tst()
 {
     Value v1;
     v1["name"] = "Ibrahim";
@@ -62,7 +69,7 @@ void tst()
     v1["faves"] = {453, -34, '@', true, -9.80665, "So damn funny"};
     v1["arrays"] = {v1, v1, v1};
 
-    cout << to_ostream(v1) << endl;
+    //cout << to_ostream(v1) << endl;
 
     std::ofstream file;
     file.open("tst.ubex", ios::binary);
@@ -73,9 +80,10 @@ void tst()
     if(result.second)
         cout << "Successfully ";
     cout << "wrote " << result.first << " bytes" << endl;
+    return v1;
 }
 
-void tst2()
+Value tst2()
 {
     Value v2;
     std::ifstream file;
@@ -87,6 +95,6 @@ void tst2()
         cout << "Successfully READ:::\n-----------\n";
     }
     cout << reader.getBytesRead() << " bytes read\nERRORS: " << reader.getLastError() << endl << endl;
-    cout << to_ostream(v2) << endl;
-
+    //cout << to_ostream(v2) << endl;
+    return v2;
 }
