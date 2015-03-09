@@ -270,43 +270,43 @@ namespace timl {
         size_t size() const noexcept;
 
         //! Returns whether the contained type is a (Key-Value) Map {like std::unordered_map}
-        bool isMap() const noexcept;
+        bool isMap() const noexcept { return vtype == Type::Map;     }
 
         //! Returns whether the contained type is Null (empty)
-        bool isNull() const noexcept;
+        bool isNull() const noexcept { return vtype == Type::Null;   }
 
         //! Returns whether the contained type is a single Character (char)
-        bool isChar() const noexcept;
+        bool isChar() const noexcept { return vtype == Type::Char;   }
 
         //! Returns whether the contained type is a boolean (bool)
-        bool isBool() const noexcept;
+        bool isBool() const noexcept { return vtype == Type::Bool;   }
 
         //! Returns whether the contained type is a floating point type (double)
-        bool isFloat() const noexcept;
+        bool isFloat() const noexcept { return vtype == Type::Float; }
 
         //! Returns whether the contained type is a floating point type. (double)
-        bool isArray() const noexcept;
+        bool isArray() const noexcept { return vtype == Type::Array; }
 
         //! The same thing as \ref isMap()
-        bool isObject() const noexcept;
+        bool isObject() const noexcept { return isMap();             }
 
         //! Returns whether the contained type is a string type. (std::string)
-        bool isString() const noexcept;
+        bool isString() const noexcept { return vtype == Type::String; }
 
         //! Returns whether the contained type is \ref BinaryType "Binary"
-        bool isBinary() const noexcept;
+        bool isBinary() const noexcept { return vtype == Type::Binary; }
 
         //! Returns whether the contained type is a numeric type. ( double or {(unsigned)int/long long} )
-        bool isNumeric() const noexcept;
+        bool isNumeric() const noexcept { return isInteger() or isFloat();     }
 
         //! Returns whether the contained type is an integer type. ( {(unsigned)int/long long} )
-        bool isInteger() const noexcept;
+        bool isInteger() const noexcept { return isSignedInteger() or isUnsignedInteger(); }
 
         //! Returns whether the contained type is an signed integer type. ( int/long long )
-        bool isSignedInteger() const noexcept;
+        bool isSignedInteger() const noexcept { return vtype == Type::SignedInt;    }
 
         //! Returns whether the contained type is an unsigned integer type. ( unsigned int/unsigned long long )
-        bool isUnsignedInteger() const noexcept;
+        bool isUnsignedInteger() const noexcept { return vtype == Type::UnsignedInt; }
 
         /*!
          * \fn isComparableWith

@@ -354,19 +354,19 @@ Value::Keys Value::keys() const
     return rtn;
 }
 
-bool Value::isNull()    const noexcept { return vtype == Type::Null;   }
-bool Value::isArray()   const noexcept { return vtype == Type::Array;  }
-bool Value::isBinary()  const noexcept { return vtype == Type::Binary; }
-bool Value::isBool()    const noexcept { return vtype == Type::Bool;   }
-bool Value::isChar()    const noexcept { return vtype == Type::Char;   }
-bool Value::isFloat()   const noexcept { return vtype == Type::Float;  }
-bool Value::isMap()     const noexcept { return vtype == Type::Map;    }
-bool Value::isString()  const noexcept { return vtype == Type::String; }
-bool Value::isSignedInteger()   const noexcept { return vtype == Type::SignedInt;   }
-bool Value::isUnsignedInteger() const noexcept { return vtype == Type::UnsignedInt; }
-bool Value::isObject()  const noexcept  { return isMap();                       }
-bool Value::isNumeric()  const noexcept { return isInteger() or isFloat();     }
-bool Value::isInteger() const noexcept  { return isSignedInteger() or isUnsignedInteger(); }
+//bool Value::isNull()    const noexcept { return vtype == Type::Null;   }
+//bool Value::isArray()   const noexcept { return vtype == Type::Array;  }
+//bool Value::isBinary()  const noexcept { return vtype == Type::Binary; }
+//bool Value::isBool()    const noexcept { return vtype == Type::Bool;   }
+//bool Value::isChar()    const noexcept { return vtype == Type::Char;   }
+//bool Value::isFloat()   const noexcept { return vtype == Type::Float;  }
+//bool Value::isMap()     const noexcept { return vtype == Type::Map;    }
+//bool Value::isString()  const noexcept { return vtype == Type::String; }
+//bool Value::isSignedInteger()   const noexcept { return vtype == Type::SignedInt;   }
+//bool Value::isUnsignedInteger() const noexcept { return vtype == Type::UnsignedInt; }
+//bool Value::isObject()  const noexcept  { return isMap();                       }
+//bool Value::isNumeric()  const noexcept { return isInteger() or isFloat();     }
+//bool Value::isInteger() const noexcept  { return isSignedInteger() or isUnsignedInteger(); }
 
 bool Value::isComparableWith(const Value &rhs) const noexcept
 {
