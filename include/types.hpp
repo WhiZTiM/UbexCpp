@@ -141,6 +141,23 @@ namespace timl {
     { return isObjectStart(b) or isString(b) or isBinary(b) or isHomoArrayStart(b) or isHetroArrayStart(b); }
 
 
+    //////////////////////////////////////
+    ///
+    /// FOR TYPE detection According to standard
+    ///
+
+    constexpr bool isLoneType(Type t)
+    { return t == Type::Null or t == Type::Bool; }
+
+    constexpr bool isDirectType(Type t)
+    { return t == Type::Char or t == Type::Float or t == Type::SignedInt or t == Type::UnsignedInt; }
+
+    constexpr bool isSequenceType(Type t)
+    { return t == Type::String or t == Type::Binary; }
+
+    constexpr bool isContainerType(Type t)
+    { return t == Type::Array or t == Type::Map; }
+
     static_assert(sizeof(byte) == 1, "a byte must be exactly one byte(8 bits)");
 }   //end namespace::timl
 
