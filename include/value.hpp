@@ -261,7 +261,7 @@ namespace timl {
         ~Value();
 
         //! returns the \b Type contained by Value::ValueHolder
-        Type type() const noexcept;
+        Type type() const noexcept { return vtype; }
 
         /*!
          * \brief returns the number of items contained in this Value Object

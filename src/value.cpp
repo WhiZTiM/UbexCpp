@@ -179,8 +179,8 @@ size_t Value::size() const noexcept
     }
 }
 
-Type Value::type() const noexcept
-{ return vtype; }
+//Type Value::type() const noexcept
+//{ return vtype; }
 
 Value& Value::operator [] (int i)
 {
@@ -668,9 +668,14 @@ inline void Value::destruct() noexcept
 }
 
 
-//////////////////////////  CONVERSION OPERATOR  ///////////////////////////
+//////////////////////////  CONVERSION OPERATORS  ///////////////////////////
 ///// I currently don't know a better way to avoid code duplication here
-///// C++ forbids a const function to call a none const function
+///// C++ forbids a const function to call a none const function;
+///// THOUGH THERE IS A POPULAR CASTING WORKAROUND ...but
+/////
+///// I want the exceptions to throw the Qualifier of the object called
+///// i.e (const, &, or &&) ...
+///// Please, Discuss this with me (or the maintainer), if you feel this isn't cool
 
 
 ///simple int
