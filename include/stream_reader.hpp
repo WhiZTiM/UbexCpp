@@ -353,7 +353,12 @@ namespace timl {
                     icount.first = 0;
             }
             else
-                icount.first = 0;
+            {
+                byte marker = static_cast<byte>(icount.first);
+                if(not isObjectEnd(marker))
+                    throw parsing_exception("empty Object is ill-formed");
+                return;
+            }
         }
 
         extract_nextValue(v, icount.first, MarkerType::Object);
@@ -364,20 +369,24 @@ namespace timl {
     {
         byte type_mark = static_cast<byte>(extract_Uint8().first);
         auto icount = extract_itemCount();
-        if(not icount.second)
-            icount.first = 0;
+        if(icount.second)
+            extract_nextValue(v, icount.first, MarkerType::HomoArray, type_mark);
 
-        extract_nextValue(v, icount.first, MarkerType::HomoArray, type_mark);
+        byte marker = static_cast<byte>(icount.first);
+        if(not isHomoArrayEnd(marker))
+            throw parsing_exception("empty HomogenousArray is ill-formed");
     }
 
     template<typename StreamType>
     void StreamReader<StreamType>::extract_count_and_HetroArray(Value &v)
     {
         auto icount = extract_itemCount();
-        if(not icount.second)
-            icount.first = 0;
+        if(icount.second )
+            return extract_nextValue(v, icount.first, MarkerType::HetroArray);
 
-        extract_nextValue(v, icount.first, MarkerType::HetroArray);
+        byte marker = static_cast<byte>(icount.first);
+        if(not isHetroArrayEnd(marker))
+            throw parsing_exception("empty HetrogenousArray is ill-formed");
     }
 
     template<typename StreamType>
