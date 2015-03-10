@@ -21,6 +21,8 @@
 
 namespace timl {
 
+    std::pair<Type, bool> common_array_type(const Value&);
+
     template<typename StreamType>
     class StreamWriter
     {
@@ -325,11 +327,7 @@ namespace timl {
         std::pair<size_t, bool> rtn(0, false);
         if(in_range(val, Float32::lowest(), Float32::max()) and static_cast<float>(val) == val)
         {
-            // g++ 4.9.1 doesn't work well here
-            //const uint32_t val = toBigEndianFloat32(static_cast<float>(val));
-
-            float temp = static_cast<float>(val);           //Workaround
-            const uint32_t val_i = toBigEndianFloat32(temp);  //Workaround
+            const uint32_t val_i = toBigEndianFloat32(static_cast<float>(val));
             std::memcpy(b, &val_i, 4);
             write(Marker::Float32);
             write(b, 4);
@@ -367,6 +365,41 @@ namespace timl {
         //! WORK in progress
 
     }
+
+
+
+
+
+
+
+
+
+
+
+    std::pair<Type, bool> common_array_type(const Value& value)
+    {
+        std::pair<Type, bool> rtn(Type::Null, false);
+
+        if( not value.isArray() or value.size() < 2)
+            return rtn;
+
+        const auto type1 = value[0].type();    //pick the type of the first element
+        for(size_t i = 1; i < value.size(); ++i)
+        {
+            const auto type2 = value[i].type();
+            if(type1 != type2)
+                return rtn;
+        }
+        rtn.first = type1;
+        rtn.second = isDirectType(type1) or isSequenceType(type1) ? true : false;
+        return rtn;
+    }
+
+
+
+
+
+
 
 }   //end namespace timl
 
