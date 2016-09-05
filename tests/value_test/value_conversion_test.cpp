@@ -432,16 +432,16 @@ public:
         Value Map(*v_map);
         Value Binary(*v_binary);
 
-        CPPUNIT_ASSERT_THROW(std::string&& k = std::move(Null), timl::bad_value_cast);
-        CPPUNIT_ASSERT_THROW(std::string&& k = std::move(Char), timl::bad_value_cast);
-        CPPUNIT_ASSERT_THROW(std::string&& k = std::move(Bool), timl::bad_value_cast);
-        CPPUNIT_ASSERT_THROW(std::string&& k = std::move(SignedInt), timl::bad_value_cast);
-        CPPUNIT_ASSERT_THROW(std::string&& k = std::move(UnsignedInt), timl::bad_value_cast);
-        CPPUNIT_ASSERT_THROW(std::string&& k = std::move(Float), timl::bad_value_cast);
-        CPPUNIT_ASSERT_NO_THROW(std::string&& k = std::move(String));
-        CPPUNIT_ASSERT_THROW(std::string&& k = std::move(Array), timl::bad_value_cast);
-        CPPUNIT_ASSERT_THROW(std::string&& k = std::move(Map), timl::bad_value_cast);
-        CPPUNIT_ASSERT_THROW(std::string&& k = std::move(Binary), timl::bad_value_cast);
+        CPPUNIT_ASSERT_THROW(std::string k = std::move(Null), timl::bad_value_cast);
+        CPPUNIT_ASSERT_THROW(std::string k = std::move(Char), timl::bad_value_cast);
+        CPPUNIT_ASSERT_THROW(std::string k = std::move(Bool), timl::bad_value_cast);
+        CPPUNIT_ASSERT_THROW(std::string k = std::move(SignedInt), timl::bad_value_cast);
+        CPPUNIT_ASSERT_THROW(std::string k = std::move(UnsignedInt), timl::bad_value_cast);
+        CPPUNIT_ASSERT_THROW(std::string k = std::move(Float), timl::bad_value_cast);
+        CPPUNIT_ASSERT_NO_THROW(std::string k = std::move(String));
+        CPPUNIT_ASSERT_THROW(std::string k = std::move(Array), timl::bad_value_cast);
+        CPPUNIT_ASSERT_THROW(std::string k = std::move(Map), timl::bad_value_cast);
+        CPPUNIT_ASSERT_THROW(std::string k = std::move(Binary), timl::bad_value_cast);
 
         //Assert Invariants are maintained after move failure
         CPPUNIT_ASSERT( *v_empty == Null    );
@@ -512,16 +512,16 @@ public:
         Value Map(*v_map);
         Value Binary(*v_binary);
 
-        CPPUNIT_ASSERT_THROW(Value::BinaryType&& k = std::move(Null), timl::bad_value_cast);
-        CPPUNIT_ASSERT_THROW(Value::BinaryType&& k = std::move(Char), timl::bad_value_cast);
-        CPPUNIT_ASSERT_THROW(Value::BinaryType&& k = std::move(Bool), timl::bad_value_cast);
-        CPPUNIT_ASSERT_THROW(Value::BinaryType&& k = std::move(SignedInt), timl::bad_value_cast);
-        CPPUNIT_ASSERT_THROW(Value::BinaryType&& k = std::move(UnsignedInt), timl::bad_value_cast);
-        CPPUNIT_ASSERT_THROW(Value::BinaryType&& k = std::move(Float), timl::bad_value_cast);
-        CPPUNIT_ASSERT_THROW(Value::BinaryType&& k = std::move(String), timl::bad_value_cast);
-        CPPUNIT_ASSERT_THROW(Value::BinaryType&& k = std::move(Array), timl::bad_value_cast);
-        CPPUNIT_ASSERT_THROW(Value::BinaryType&& k = std::move(Map), timl::bad_value_cast);
-        CPPUNIT_ASSERT_NO_THROW(Value::BinaryType&& k = std::move(Binary));
+        CPPUNIT_ASSERT_THROW(Value::BinaryType k = std::move(Null), timl::bad_value_cast);
+        CPPUNIT_ASSERT_THROW(Value::BinaryType k = std::move(Char), timl::bad_value_cast);
+        CPPUNIT_ASSERT_THROW(Value::BinaryType k = std::move(Bool), timl::bad_value_cast);
+        CPPUNIT_ASSERT_THROW(Value::BinaryType k = std::move(SignedInt), timl::bad_value_cast);
+        CPPUNIT_ASSERT_THROW(Value::BinaryType k = std::move(UnsignedInt), timl::bad_value_cast);
+        CPPUNIT_ASSERT_THROW(Value::BinaryType k = std::move(Float), timl::bad_value_cast);
+        CPPUNIT_ASSERT_THROW(Value::BinaryType k = std::move(String), timl::bad_value_cast);
+        CPPUNIT_ASSERT_THROW(Value::BinaryType k = std::move(Array), timl::bad_value_cast);
+        CPPUNIT_ASSERT_THROW(Value::BinaryType k = std::move(Map), timl::bad_value_cast);
+        CPPUNIT_ASSERT_NO_THROW(Value::BinaryType k = std::move(Binary));
 
         //Assert Invariants are maintained after move failure
         CPPUNIT_ASSERT( *v_empty == Null    );
